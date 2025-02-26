@@ -31,8 +31,6 @@ export class OpenAIProvider implements AIProvider {
 
   async listAvailableModels(): Promise<string[]> {
     const models = await this.client.models.list();
-    return models.data
-      .filter(model => model.id.startsWith('gpt'))
-      .map(model => model.id);
+    return models.data.filter(model => model.id.startsWith('gpt')).map(model => model.id);
   }
 }

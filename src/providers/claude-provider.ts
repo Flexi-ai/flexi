@@ -14,7 +14,7 @@ export class ClaudeProvider implements AIProvider {
       model: request.model || 'claude-3-opus-20240229',
       messages: request.messages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content
+        content: msg.content,
       })),
       max_tokens: request.maxTokens,
       temperature: request.temperature,
@@ -27,7 +27,7 @@ export class ClaudeProvider implements AIProvider {
       usage: {
         promptTokens: completion.usage?.input_tokens,
         completionTokens: completion.usage?.output_tokens,
-        totalTokens: (completion.usage?.input_tokens || 0) + (completion.usage?.output_tokens || 0)
+        totalTokens: (completion.usage?.input_tokens || 0) + (completion.usage?.output_tokens || 0),
       },
     };
   }
@@ -38,7 +38,7 @@ export class ClaudeProvider implements AIProvider {
       'claude-3-sonnet-20240229',
       'claude-3-haiku-20240307',
       'claude-2.1',
-      'claude-2.0'
+      'claude-2.0',
     ];
   }
 }

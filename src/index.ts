@@ -20,22 +20,25 @@ if (process.env.ANTHROPIC_API_KEY) {
 }
 
 // Swagger documentation
-app.get('/swagger', swaggerUI({
-  url: '/api/swagger.json'
-}));
+app.get(
+  '/swagger',
+  swaggerUI({
+    url: '/api/swagger.json',
+  })
+);
 
 // API routes
 const api = app.route('/api');
 
 // List available providers
-api.get('/providers', (c) => {
+api.get('/providers', c => {
   return c.json({
-    providers: Array.from(providers.keys())
+    providers: Array.from(providers.keys()),
   });
 });
 
 // Get available models for a provider
-api.get('/providers/:provider/models', async (c) => {
+api.get('/providers/:provider/models', async c => {
   const providerName = c.req.param('provider');
   const provider = providers.get(providerName);
 
@@ -50,17 +53,19 @@ api.get('/providers/:provider/models', async (c) => {
 // Completion endpoint schema
 const completionSchema = z.object({
   provider: z.string(),
-  messages: z.array(z.object({
-    role: z.enum(['user', 'assistant', 'system']),
-    content: z.string()
-  })),
+  messages: z.array(
+    z.object({
+      role: z.enum(['user', 'assistant', 'system']),
+      content: z.string(),
+    })
+  ),
   temperature: z.number().min(0).max(1).optional(),
   maxTokens: z.number().positive().optional(),
-  model: z.string().optional()
+  model: z.string().optional(),
 });
 
 // Create completion
-api.post('/completion', zValidator('json', completionSchema), async (c) => {
+api.post('/completion', zValidator('json', completionSchema), async c => {
   const body = c.req.valid('json');
   const provider = providers.get(body.provider);
 
@@ -73,7 +78,7 @@ api.post('/completion', zValidator('json', completionSchema), async (c) => {
       messages: body.messages,
       temperature: body.temperature,
       maxTokens: body.maxTokens,
-      model: body.model
+      model: body.model,
     };
 
     const response = await provider.getCompletion(request);
@@ -89,5 +94,5 @@ console.log(`Server is running on port ${port}`);
 
 export default {
   port,
-  fetch: app.fetch
+  fetch: app.fetch,
 };
