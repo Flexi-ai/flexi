@@ -12,7 +12,10 @@ export class OpenAIProvider implements AIProvider {
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
     const completion = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
-      messages: request.messages,
+      messages: request.messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
       temperature: request.temperature,
       max_tokens: request.maxTokens,
     });

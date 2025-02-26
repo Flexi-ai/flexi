@@ -1,4 +1,4 @@
-import { Anthropic } from 'anthropic';
+import { Anthropic } from '@anthropic-ai/sdk';
 import { AICompletionRequest, AICompletionResponse, AIProvider } from '../types/ai-provider';
 
 export class ClaudeProvider implements AIProvider {
@@ -16,12 +16,12 @@ export class ClaudeProvider implements AIProvider {
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
       })),
-      max_tokens: request.maxTokens,
+      max_tokens: request.maxTokens || 1000,
       temperature: request.temperature,
     });
 
     return {
-      content: completion.content[0].text,
+      content: completion.content[0].type === 'text' ? completion.content[0].text : '',
       model: completion.model,
       provider: this.name,
       usage: {

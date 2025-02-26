@@ -1,5 +1,5 @@
 export interface AIMessage {
-  role: 'user' | 'assistant' | 'system' | 'bot';
+  role: 'user' | 'assistant' | 'system';
   content: string;
 }
 

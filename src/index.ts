@@ -6,7 +6,7 @@ import { swaggerUI } from '@hono/swagger-ui';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 
-const app = new Hono();
+const app = new Hono({ strict: false });
 
 // Initialize providers map
 const providers = new Map<string, AIProvider>();
@@ -28,7 +28,8 @@ app.get(
 );
 
 // API routes
-const api = app.route('/api');
+const api = new Hono().basePath('/api');
+app.route('/', api);
 
 // List available providers
 api.get('/providers', c => {
@@ -84,7 +85,8 @@ api.post('/completion', zValidator('json', completionSchema), async c => {
     const response = await provider.getCompletion(request);
     return c.json(response);
   } catch (error) {
-    return c.json({ error: error.message }, 500);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return c.json({ error: errorMessage }, 500);
   }
 });
 
