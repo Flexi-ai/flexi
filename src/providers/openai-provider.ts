@@ -13,11 +13,11 @@ export class OpenAIProvider implements AIProvider {
     const completion = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
       messages: request.messages.map(msg => ({
-        role: msg.role,
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
       })),
-      temperature: request.temperature,
-      max_tokens: request.maxTokens,
+      temperature: request?.temperature || 0.7,
+      max_tokens: request?.maxTokens || 1000,
     });
 
     return {

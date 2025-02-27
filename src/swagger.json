@@ -129,12 +129,12 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1,
-                    "description": "Controls randomness in the response"
+                    "description": "Controls randomness in the response (optional)"
                   },
                   "maxTokens": {
                     "type": "integer",
                     "minimum": 1,
-                    "description": "Maximum number of tokens to generate"
+                    "description": "Maximum number of tokens to generate (optional)"
                   },
                   "model": {
                     "type": "string",
