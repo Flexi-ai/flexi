@@ -39,13 +39,13 @@ export class ClaudeProvider implements AIProvider {
 
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
     const completion = await this.client.messages.create({
-      model: request.model || 'claude-3-opus-20240229',
+      model: request.model || 'claude-3.5-sonnet',
       messages: request.messages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
       })),
-      max_tokens: request.maxTokens || 1000,
-      temperature: request.temperature,
+      temperature: request?.temperature || 0.7,
+      max_tokens: request?.maxTokens || 1000,
     });
 
     return {
