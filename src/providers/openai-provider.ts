@@ -13,11 +13,11 @@ export class OpenAIProvider implements AIProvider {
     const completion = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
       messages: request.messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content,
       })),
-      temperature: request.temperature,
-      max_tokens: request.maxTokens,
+      temperature: request?.temperature || 0.7,
+      max_tokens: request?.maxTokens || 1000,
     });
 
     return {
@@ -33,7 +33,18 @@ export class OpenAIProvider implements AIProvider {
   }
 
   async listAvailableModels(): Promise<string[]> {
-    const models = await this.client.models.list();
-    return models.data.filter(model => model.id.startsWith('gpt')).map(model => model.id);
+    return [
+      'o1',
+      'o1-mini',
+      'o3-mini',
+      'chatgpt-4o-latest',
+      'gpt-3.5-turbo-instruct',
+      'gpt-3.5-turbo',
+      'gpt-3.5-turbo-16k',
+      'gpt-4-turbo',
+      'gpt-4',
+      'gpt-4o',
+      'gpt-4o-mini',
+    ];
   }
 }

@@ -1,0 +1,269 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "FlexiAI API",
+    "description": "A flexible AI API that supports multiple AI providers",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/providers": {
+      "get": {
+        "summary": "List available AI providers",
+        "description": "Returns a list of all configured AI providers",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "providers": ["openai", "claude"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/providers/{provider}/models": {
+      "get": {
+        "summary": "List available models for a provider",
+        "description": "Returns a list of all available models for the specified provider",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the AI provider"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "models": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "models": ["gpt-4", "gpt-3.5-turbo"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Provider not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Provider not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/completion": {
+      "post": {
+        "summary": "Create an AI completion",
+        "description": "Generates a completion using the specified AI provider",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["provider", "messages"],
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "description": "The AI provider to use"
+                  },
+                  "messages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["role", "content"],
+                      "properties": {
+                        "role": {
+                          "type": "string",
+                          "enum": ["user", "assistant", "system"]
+                        },
+                        "content": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "temperature": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Controls randomness in the response (optional)"
+                  },
+                  "maxTokens": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Maximum number of tokens to generate (optional)"
+                  },
+                  "model": {
+                    "type": "string",
+                    "description": "Specific model to use (optional)"
+                  },
+                  "show_stats": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to return model and usage statistics"
+                  }
+                }
+              },
+              "example": {
+                "provider": "openai",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Hello, how are you?"
+                  }
+                ],
+                "temperature": 0.7,
+                "maxTokens": 100
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful completion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "content": "I'm doing well, thank you for asking! How can I help you today?"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Provider not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Provider not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "An unknown error occurred"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Invalid request parameters"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Message": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["user", "assistant", "system"],
+            "description": "The role of the message sender"
+          },
+          "content": {
+            "type": "string",
+            "description": "The content of the message"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      }
+    }
+  }
+}
