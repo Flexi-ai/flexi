@@ -2,15 +2,15 @@
   "name": "flexiai",
   "version": "1.0.0",
   "description": "FlexiAI - A flexible AI solution",
-  "main": "app/index.ts",
+  "main": "src/index.ts",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "bun run --watch app/index.ts",
-    "start": "bun run app/index.ts",
-    "build": "bun build app/index.ts --outdir dist",
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
