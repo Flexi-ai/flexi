@@ -24,7 +24,18 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
       };
 
       const response = await provider.getCompletion(request);
-      return c.json(response);
+      let responseBody = { content: response.content };
+      if (body.show_stats) {
+        responseBody = {
+          ...responseBody,
+          ...{
+            model: response.model,
+            provider: response.provider,
+            usage: response.usage,
+          },
+        };
+      }
+      return c.json(responseBody);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       return c.json({ error: errorMessage }, 500);

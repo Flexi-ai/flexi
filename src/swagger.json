@@ -139,6 +139,11 @@
                   "model": {
                     "type": "string",
                     "description": "Specific model to use (optional)"
+                  },
+                  "show_stats": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to return model and usage statistics"
                   }
                 }
               },

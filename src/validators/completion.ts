@@ -11,4 +11,5 @@ export const completionSchema = z.object({
   temperature: z.number().min(0).max(1).optional(),
   maxTokens: z.number().positive().optional(),
   model: z.string().optional(),
+  show_stats: z.boolean().optional().default(false),
 });
