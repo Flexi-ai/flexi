@@ -1,6 +1,6 @@
-import { expect, test, describe, beforeEach, mock } from 'bun:test';
+import { expect, test, describe, beforeEach, mock, type Mock } from 'bun:test';
 import { Hono } from 'hono';
-import { AIProvider, AICompletionResponse } from '../types/ai-provider';
+import { AIProvider, AICompletionResponse, AICompletionRequest } from '../types/ai-provider';
 import { createCompletionRoutes } from '../routes/completion';
 
 describe('Completion Routes', () => {
@@ -9,7 +9,11 @@ describe('Completion Routes', () => {
 
   beforeEach(() => {
     mockProvider = {
-      getCompletion: mock(() => {}),
+      name: 'test-provider',
+      getCompletion: mock<(request: AICompletionRequest) => Promise<AICompletionResponse>>(() =>
+        Promise.resolve({ content: '', model: '', provider: '' })
+      ),
+      listAvailableModels: mock(() => Promise.resolve(['test-model'])),
     };
     const providers = new Map<string, AIProvider>();
     providers.set('test-provider', mockProvider);
@@ -28,7 +32,11 @@ describe('Completion Routes', () => {
       },
     };
 
-    (mockProvider.getCompletion as mock).mockResolvedValue(mockResponse);
+    (
+      mockProvider.getCompletion as Mock<
+        (request: AICompletionRequest) => Promise<AICompletionResponse>
+      >
+    ).mockResolvedValue(mockResponse);
 
     const req = new Request('http://localhost/completion', {
       method: 'POST',
@@ -61,7 +69,11 @@ describe('Completion Routes', () => {
       },
     };
 
-    (mockProvider.getCompletion as mock).mockResolvedValue(mockResponse);
+    (
+      mockProvider.getCompletion as Mock<
+        (request: AICompletionRequest) => Promise<AICompletionResponse>
+      >
+    ).mockResolvedValue(mockResponse);
 
     const req = new Request('http://localhost/completion', {
       method: 'POST',
@@ -95,7 +107,11 @@ describe('Completion Routes', () => {
       },
     };
 
-    (mockProvider.getCompletion as mock).mockResolvedValue(mockResponse);
+    (
+      mockProvider.getCompletion as Mock<
+        (request: AICompletionRequest) => Promise<AICompletionResponse>
+      >
+    ).mockResolvedValue(mockResponse);
 
     const req = new Request('http://localhost/completion', {
       method: 'POST',
@@ -138,7 +154,11 @@ describe('Completion Routes', () => {
   });
 
   test('provider error handling', async () => {
-    (mockProvider.getCompletion as mock).mockRejectedValue(new Error('Provider error'));
+    (
+      mockProvider.getCompletion as Mock<
+        (request: AICompletionRequest) => Promise<AICompletionResponse>
+      >
+    ).mockRejectedValue(new Error('Provider error'));
 
     const req = new Request('http://localhost/completion', {
       method: 'POST',
