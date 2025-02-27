@@ -1,9 +1,38 @@
 import { OpenAI } from 'openai';
-import { AICompletionRequest, AICompletionResponse, AIProvider } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIStreamChunk,
+  AIProvider,
+} from '../types/ai-provider';
 
 export class OpenAIProvider implements AIProvider {
   private client: OpenAI;
   name = 'openai';
+
+  async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    const stream = await this.client.chat.completions.create({
+      model: request.model || 'gpt-3.5-turbo',
+      messages: request.messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content,
+      })),
+      temperature: request?.temperature || 0.7,
+      max_tokens: request?.maxTokens || 1000,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        yield {
+          content,
+          model: chunk.model,
+          provider: this.name,
+        };
+      }
+    }
+  }
 
   constructor(apiKey: string) {
     this.client = new OpenAI({ apiKey });
