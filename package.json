@@ -16,7 +16,7 @@
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "format": "prettier --write .",
-    "lint": "eslint . --ext .ts --fix"
+    "lint": "eslint . --ext .ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",

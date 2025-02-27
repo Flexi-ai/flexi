@@ -9,7 +9,9 @@ import { ClaudeProvider } from '../providers/claude-provider';
 import { OpenAIProvider } from '../providers/openai-provider';
 
 // Mock Anthropic SDK
-class MockAnthropicStream implements AsyncIterable<any> {
+class MockAnthropicStream
+  implements AsyncIterable<{ type: string; delta: { type: string; text: string } }>
+{
   async *[Symbol.asyncIterator]() {
     yield { type: 'content_block_delta', delta: { type: 'text_delta', text: 'Hello' } };
     yield { type: 'content_block_delta', delta: { type: 'text_delta', text: ' World' } };
@@ -17,7 +19,9 @@ class MockAnthropicStream implements AsyncIterable<any> {
 }
 
 // Mock OpenAI SDK
-class MockOpenAIStream implements AsyncIterable<any> {
+class MockOpenAIStream
+  implements AsyncIterable<{ choices: Array<{ delta: { content: string } }>; model: string }>
+{
   async *[Symbol.asyncIterator]() {
     yield { choices: [{ delta: { content: 'Hello' } }], model: 'gpt-3.5-turbo' };
     yield { choices: [{ delta: { content: ' World' } }], model: 'gpt-3.5-turbo' };
@@ -45,7 +49,7 @@ describe('AI Provider Types', () => {
           create: () => Promise.resolve(new MockAnthropicStream()),
         },
       };
-      (provider as any).client = mockClient;
+      (provider as unknown as { client: typeof mockClient }).client = mockClient;
 
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Test message' }],
@@ -79,7 +83,7 @@ describe('AI Provider Types', () => {
           },
         },
       };
-      (provider as any).client = mockClient;
+      (provider as unknown as { client: typeof mockClient }).client = mockClient;
 
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Test message' }],
@@ -111,21 +115,19 @@ describe('AI Provider Types', () => {
           create: () => Promise.reject(new Error('Authentication failed')),
         },
       };
-      (provider as any).client = mockClient;
+      (provider as unknown as { client: typeof mockClient }).client = mockClient;
 
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Test message' }],
         model: 'claude-3-sonnet-20240229',
       };
 
-      const promise = (async () => {
-        const stream = provider.getCompletionStream(request);
+      const stream = provider.getCompletionStream(request);
+      await expect(async () => {
         for await (const _ of stream) {
-          // Consume stream
+          console.log(_);
         }
-      })();
-
-      await expect(promise).rejects.toThrow('Authentication failed');
+      }).rejects.toThrow('Authentication failed');
     });
 
     test('OpenAIProvider streaming error handling', async () => {
@@ -137,21 +139,19 @@ describe('AI Provider Types', () => {
           },
         },
       };
-      (provider as any).client = mockClient;
+      (provider as unknown as { client: typeof mockClient }).client = mockClient;
 
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Test message' }],
         model: 'gpt-3.5-turbo',
       };
 
-      const promise = (async () => {
-        const stream = provider.getCompletionStream(request);
+      const stream = provider.getCompletionStream(request);
+      await expect(async () => {
         for await (const _ of stream) {
-          // Consume stream
+          console.log(_);
         }
-      })();
-
-      await expect(promise).rejects.toThrow('Authentication failed');
+      }).rejects.toThrow('Authentication failed');
     });
   });
 
