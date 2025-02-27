@@ -123,11 +123,7 @@ describe('AI Provider Types', () => {
       };
 
       const stream = provider.getCompletionStream(request);
-      await expect(async () => {
-        for await (const _ of stream) {
-          console.log(_);
-        }
-      }).rejects.toThrow('Authentication failed');
+      await expect(stream.next()).rejects.toThrow('Authentication failed');
     });
 
     test('OpenAIProvider streaming error handling', async () => {
@@ -147,11 +143,7 @@ describe('AI Provider Types', () => {
       };
 
       const stream = provider.getCompletionStream(request);
-      await expect(async () => {
-        for await (const _ of stream) {
-          console.log(_);
-        }
-      }).rejects.toThrow('Authentication failed');
+      await expect(stream.next()).rejects.toThrow('Authentication failed');
     });
   });
 
