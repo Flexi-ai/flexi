@@ -64,6 +64,12 @@ Once the server is running, you can access the Swagger UI documentation at:
 http://localhost:3000/swagger
 ```
 
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and contribute to the project.
+
+This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

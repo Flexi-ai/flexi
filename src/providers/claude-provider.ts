@@ -1,9 +1,37 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import { AICompletionRequest, AICompletionResponse, AIProvider } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIStreamChunk,
+  AIProvider,
+} from '../types/ai-provider';
 
 export class ClaudeProvider implements AIProvider {
   private client: Anthropic;
   name = 'claude';
+
+  async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    const stream = await this.client.messages.create({
+      model: request.model || 'claude-3-sonnet-20240229',
+      messages: request.messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content,
+      })),
+      temperature: request?.temperature || 0.7,
+      max_tokens: request?.maxTokens || 1000,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        yield {
+          content: chunk.delta.text || '',
+          model: request.model || 'claude-3-sonnet-20240229',
+          provider: this.name,
+        };
+      }
+    }
+  }
 
   constructor(apiKey: string) {
     this.client = new Anthropic({ apiKey });

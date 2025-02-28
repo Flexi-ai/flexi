@@ -96,7 +96,7 @@
     "/api/completion": {
       "post": {
         "summary": "Create an AI completion",
-        "description": "Generates a completion using the specified AI provider",
+        "description": "Generates a completion using the specified AI provider. For streaming responses, set 'stream: true' in the request body.",
         "requestBody": {
           "required": true,
           "content": {
@@ -144,6 +144,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Whether to return model and usage statistics"
+                  },
+                  "stream": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to stream the response as Server-Sent Events"
                   }
                 }
               },
@@ -165,6 +170,25 @@
           "200": {
             "description": "Successful completion",
             "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "string",
+                      "description": "The generated text chunk"
+                    },
+                    "model": {
+                      "type": "string",
+                      "description": "The model used for generation"
+                    },
+                    "provider": {
+                      "type": "string",
+                      "description": "The AI provider used"
+                    }
+                  }
+                }
+              },
               "application/json": {
                 "schema": {
                   "type": "object",

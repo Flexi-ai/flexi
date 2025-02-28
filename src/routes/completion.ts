@@ -23,6 +23,39 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
         model: body.model,
       };
 
+      if (body.stream && provider.getCompletionStream) {
+        c.header('Content-Type', 'text/event-stream');
+        c.header('Cache-Control', 'no-cache');
+        c.header('Connection', 'keep-alive');
+
+        const stream = provider.getCompletionStream(request);
+        return new Response(
+          new ReadableStream({
+            async start(controller) {
+              try {
+                for await (const chunk of stream) {
+                  const data = JSON.stringify({
+                    content: chunk.content,
+                    ...(body.show_stats
+                      ? {
+                          model: chunk.model,
+                          provider: chunk.provider,
+                          usage: chunk.usage,
+                        }
+                      : {}),
+                  });
+                  controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
+                }
+              } catch (error) {
+                controller.error(error);
+              } finally {
+                controller.close();
+              }
+            },
+          })
+        );
+      }
+
       const response = await provider.getCompletion(request);
       let responseBody = { content: response.content };
       if (body.show_stats) {
