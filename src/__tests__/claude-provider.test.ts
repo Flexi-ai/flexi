@@ -54,7 +54,7 @@ describe('ClaudeProvider', () => {
       const models = await provider.listAvailableModels();
       expect(Array.isArray(models)).toBe(true);
       expect(models.length).toBeGreaterThan(0);
-      expect(models).toContain('claude-3.5-sonnet');
+      expect(models).toContain('claude-3-sonnet-20240229');
     });
   });
 });
