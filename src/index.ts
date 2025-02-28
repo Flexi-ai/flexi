@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { OpenAIProvider } from './providers/openai-provider';
 import { ClaudeProvider } from './providers/claude-provider';
+import { GeminiProvider } from './providers/gemini-provider';
 import { AIProvider } from './types/ai-provider';
 import { swaggerUI } from '@hono/swagger-ui';
 import { createProviderRoutes } from './routes/providers';
@@ -18,6 +19,9 @@ if (process.env.OPENAI_API_KEY) {
 }
 if (process.env.ANTHROPIC_API_KEY) {
   providers.set('claude', new ClaudeProvider(process.env.ANTHROPIC_API_KEY));
+}
+if (process.env.GEMINI_API_KEY) {
+  providers.set('gemini', new GeminiProvider(process.env.GEMINI_API_KEY));
 }
 
 // Swagger API schema
