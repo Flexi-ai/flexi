@@ -8,6 +8,7 @@ export interface AICompletionRequest {
   temperature?: number;
   maxTokens?: number;
   model?: string;
+  stream?: boolean;
 }
 
 export interface AICompletionResponse {
