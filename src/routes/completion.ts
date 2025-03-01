@@ -16,7 +16,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
       const inputFile = formData.get('input_file');
 
       if (!requestJson) {
-        return c.json({ error: 'Missing request parameters' }, 400);
+        return c.json({ error: 'Missing request parameters' }, 500);
       }
 
       try {
@@ -25,7 +25,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
           body.input_file = inputFile;
         }
       } catch (error) {
-        return c.json({ error: 'Invalid JSON in request parameter' }, 400);
+        return c.json({ error: 'Invalid JSON in request parameter' }, 500);
       }
     } else {
       body = await c.req.json();
@@ -35,7 +35,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
     if (!validationResult.success) {
       return c.json(
         { error: 'Invalid request parameters', details: validationResult.error.errors },
-        400
+        500
       );
     }
     body = validationResult.data;
@@ -70,7 +70,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
                   if (chunk.error) {
                     const errorData = JSON.stringify({
                       error: chunk.error,
-                      status: 400,
+                      status: 500,
                     });
                     controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
                     controller.close();
@@ -93,7 +93,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
                   error instanceof Error ? error.message : 'An unknown error occurred';
                 const errorData = JSON.stringify({
                   error: errorMessage,
-                  status: 400,
+                  status: 500,
                 });
                 controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
               } finally {
@@ -119,7 +119,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
       return c.json(responseBody);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      return c.json({ error: errorMessage }, 400);
+      return c.json({ error: errorMessage }, 500);
     }
   });
 
