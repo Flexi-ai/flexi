@@ -1,16 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import {
-  AICompletionRequest,
-  AICompletionResponse,
-  AIStreamChunk,
-  AIProvider,
-} from '../types/ai-provider';
+import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
+import { AIProviderBase } from './base-provider';
 
-export class GeminiProvider implements AIProvider {
+export class GeminiProvider extends AIProviderBase {
   private client: GoogleGenerativeAI;
   name = 'gemini';
 
   constructor(apiKey: string) {
+    super();
     this.client = new GoogleGenerativeAI(apiKey);
   }
 
@@ -31,11 +28,6 @@ export class GeminiProvider implements AIProvider {
         content: chunk.text(),
         model: request.model || 'gemini-2.0-flash',
         provider: this.name,
-        usage: {
-          promptTokens: undefined,
-          completionTokens: undefined,
-          totalTokens: undefined,
-        },
       };
     }
   }
@@ -45,7 +37,7 @@ export class GeminiProvider implements AIProvider {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
     const model = this.client.getGenerativeModel({ model: request.model || 'gemini-2.0-flash' });
-    const result = await model.generateContentStream({
+    const result = await model.generateContent({
       contents: request.messages.map(msg => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }],
@@ -55,20 +47,26 @@ export class GeminiProvider implements AIProvider {
         maxOutputTokens: request?.maxTokens || 1000,
       },
     });
-    let fullText = '';
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      fullText += chunkText;
+    const response = await result.response;
+    const responseText = response.text();
+
+    let usage = undefined;
+
+    if (request.show_stats) {
+      const promptTokens = this.countMessageTokens(request.messages);
+      const completionTokens = this.countMessageTokens([{ content: responseText }]);
+      usage = {
+        promptTokens,
+        completionTokens,
+        totalTokens: promptTokens + completionTokens,
+      };
     }
+
     return {
-      content: fullText,
+      content: responseText,
       model: request.model || 'gemini-2.0-flash',
       provider: this.name,
-      usage: {
-        promptTokens: undefined,
-        completionTokens: undefined,
-        totalTokens: undefined,
-      },
+      usage,
     };
   }
 
