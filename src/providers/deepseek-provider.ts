@@ -14,10 +14,39 @@ export class DeepseekProvider extends AIProviderBase {
     });
   }
 
+  private validateImageFile(file: File): void {
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    if (!fileExtension || !imageExtensions.includes(`.${fileExtension}`)) {
+      throw new Error('Deepseek only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Deepseek only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+  }
+
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    let messages = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      messages = [
+        ...messages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:image/png;base64,${base64Content}` },
+            },
+          ],
+        },
+      ];
+    }
+
     const stream = await this.client.chat.completions.create({
       model: request.model || 'deepseek-chat',
-      messages: request.messages.map(msg => ({
+      messages: messages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
       })),
@@ -43,9 +72,27 @@ export class DeepseekProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
 
+    let messages = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      messages = [
+        ...messages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:image/png;base64,${base64Content}` },
+            },
+          ],
+        },
+      ];
+    }
+
     const completion = await this.client.chat.completions.create({
       model: request.model || 'deepseek-chat',
-      messages: request.messages.map(msg => ({
+      messages: messages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
       })),
