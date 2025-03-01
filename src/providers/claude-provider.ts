@@ -11,10 +11,43 @@ export class ClaudeProvider extends AIProviderBase {
     this.client = new Anthropic({ apiKey });
   }
 
+  private validateImageFile(file: File): void {
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    if (!fileExtension || !imageExtensions.includes(`.${fileExtension}`)) {
+      throw new Error('Claude only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Claude only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+  }
+
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    let messages = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      messages = [
+        ...messages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: request.input_file.type,
+                data: base64Content,
+              },
+            },
+          ],
+        },
+      ];
+    }
+
     const stream = await this.client.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
-      messages: request.messages.map(msg => ({
+      messages: messages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
       })),
@@ -55,16 +88,37 @@ export class ClaudeProvider extends AIProviderBase {
   }
 
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
+    let messages = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      messages = [
+        ...messages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: request.input_file.type,
+                data: base64Content,
+              },
+            },
+          ],
+        },
+      ];
+    }
+
     const completion = await this.client.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
-      messages: request.messages.map(msg => ({
+      messages: messages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
       })),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
     });
-
     let promptTokens = null;
     let completionTokens = 0;
 
