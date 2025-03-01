@@ -13,7 +13,7 @@ export class ClaudeProvider extends AIProviderBase {
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
     const stream = await this.client.messages.create({
-      model: request.model || 'claude-3-5-sonnet-latest',
+      model: request.model || 'claude-3-5-sonnet-20241022',
       messages: request.messages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
@@ -39,7 +39,7 @@ export class ClaudeProvider extends AIProviderBase {
 
         yield {
           content: chunkText,
-          model: request.model || 'claude-3-5-sonnet-latest',
+          model: request.model || 'claude-3-5-sonnet-20241022',
           provider: this.name,
           usage:
             request.show_stats && !request.stream
@@ -56,7 +56,7 @@ export class ClaudeProvider extends AIProviderBase {
 
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
     const completion = await this.client.messages.create({
-      model: request.model || 'claude-3-5-sonnet-latest',
+      model: request.model || 'claude-3-5-sonnet-20241022',
       messages: request.messages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content,
@@ -98,6 +98,7 @@ export class ClaudeProvider extends AIProviderBase {
       'claude-3-opus-latest',
       'claude-3-sonnet-20240229',
       'claude-3-haiku-20240307',
+      'claude-3-5-sonnet-20241022',
     ];
   }
 }

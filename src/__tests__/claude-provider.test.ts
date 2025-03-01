@@ -18,7 +18,7 @@ describe('ClaudeProvider', () => {
       };
 
       const response = await provider.getCompletion(request);
-      expect(response.model).toBe('claude-3.5-sonnet');
+      expect(response.model).toBe('claude-3-5-sonnet-20241022');
     });
 
     test('maps assistant role to model role', async () => {
@@ -54,7 +54,7 @@ describe('ClaudeProvider', () => {
       const models = await provider.listAvailableModels();
       expect(Array.isArray(models)).toBe(true);
       expect(models.length).toBeGreaterThan(0);
-      expect(models).toContain('claude-3-5-sonnet-latest');
+      expect(models).toContain('claude-3-5-sonnet-20241022');
     });
   });
 });
