@@ -11,18 +11,49 @@ export class GeminiProvider extends AIProviderBase {
     this.client = new GoogleGenerativeAI(apiKey);
   }
 
+  private validateImageFile(file: File): void {
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    if (!fileExtension || !imageExtensions.includes(`.${fileExtension}`)) {
+      throw new Error('Gemini only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Gemini only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+  }
+
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
     const model = this.client.getGenerativeModel({ model: request.model || 'gemini-2.0-flash' });
+    let contents = request.messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
+
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      const imageData = {
+        role: 'user',
+        parts: [
+          {
+            inlineData: {
+              mimeType: request.input_file.type,
+              data: base64Content,
+            },
+          },
+        ],
+      };
+      contents.push(imageData);
+    }
+
     const result = await model.generateContentStream({
-      contents: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
-      })),
+      contents,
       generationConfig: {
         temperature: request?.temperature || 0.7,
         maxOutputTokens: request?.maxTokens || 1000,
       },
     });
+
     for await (const chunk of result.stream) {
       yield {
         content: chunk.text(),
@@ -37,11 +68,30 @@ export class GeminiProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
     const model = this.client.getGenerativeModel({ model: request.model || 'gemini-2.0-flash' });
+    let contents = request.messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
+
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      const imageData = {
+        role: 'user',
+        parts: [
+          {
+            inlineData: {
+              mimeType: request.input_file.type,
+              data: base64Content,
+            },
+          },
+        ],
+      };
+      contents.push(imageData);
+    }
+
     const result = await model.generateContent({
-      contents: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
-      })),
+      contents,
       generationConfig: {
         temperature: request?.temperature || 0.7,
         maxOutputTokens: request?.maxTokens || 1000,
