@@ -10,16 +10,6 @@ export class OpenAIProvider extends AIProviderBase {
     super();
     this.client = new OpenAI({ apiKey });
   }
-  private validateImageFile(file: File): void {
-    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
-    const fileExtension = file.name.toLowerCase().split('.').pop();
-    if (!fileExtension || !imageExtensions.includes(`.${fileExtension}`)) {
-      throw new Error('OpenAI only supports image files (PNG, JPG, JPEG, and WEBP)');
-    }
-    if (!file.type.startsWith('image/')) {
-      throw new Error('OpenAI only supports image files (PNG, JPG, JPEG, and WEBP)');
-    }
-  }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
     let messages = request.messages;
