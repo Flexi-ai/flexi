@@ -21,6 +21,8 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
         temperature: body.temperature,
         maxTokens: body.maxTokens,
         model: body.model,
+        stream: body.stream,
+        show_stats: body.show_stats,
       };
 
       if (body.stream && provider.getCompletionStream) {

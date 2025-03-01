@@ -1,14 +1,15 @@
 import { OpenAI } from 'openai';
-import {
-  AICompletionRequest,
-  AICompletionResponse,
-  AIStreamChunk,
-  AIProvider,
-} from '../types/ai-provider';
+import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
+import { AIProviderBase } from './base-provider';
 
-export class OpenAIProvider implements AIProvider {
+export class OpenAIProvider extends AIProviderBase {
   private client: OpenAI;
   name = 'openai';
+
+  constructor(apiKey: string) {
+    super();
+    this.client = new OpenAI({ apiKey });
+  }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
     const stream = await this.client.chat.completions.create({
@@ -34,11 +35,11 @@ export class OpenAIProvider implements AIProvider {
     }
   }
 
-  constructor(apiKey: string) {
-    this.client = new OpenAI({ apiKey });
-  }
-
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
+    if (request.stream) {
+      throw new Error('For streaming responses, please use getCompletionStream method');
+    }
+
     const completion = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
       messages: request.messages.map(msg => ({
@@ -50,14 +51,17 @@ export class OpenAIProvider implements AIProvider {
     });
 
     return {
-      content: completion.choices[0].message.content || '',
+      content: completion.choices[0]?.message?.content || '',
       model: completion.model,
       provider: this.name,
-      usage: {
-        promptTokens: completion.usage?.prompt_tokens,
-        completionTokens: completion.usage?.completion_tokens,
-        totalTokens: completion.usage?.total_tokens,
-      },
+      usage:
+        request.show_stats && !request.stream && completion.usage
+          ? {
+              promptTokens: completion.usage.prompt_tokens,
+              completionTokens: completion.usage.completion_tokens,
+              totalTokens: completion.usage.total_tokens,
+            }
+          : undefined,
     };
   }
 
