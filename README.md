@@ -21,7 +21,7 @@ FlexiAI is a flexible AI solution that provides a unified interface for multiple
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/FlexiAI.git
+git clone https://github.com/Flexi-ai/flexi.git
 cd FlexiAI
 ```
 
