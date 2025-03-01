@@ -10,12 +10,40 @@ export class OpenAIProvider extends AIProviderBase {
     super();
     this.client = new OpenAI({ apiKey });
   }
+  private validateImageFile(file: File): void {
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    if (!fileExtension || !imageExtensions.includes(`.${fileExtension}`)) {
+      throw new Error('OpenAI only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+    if (!file.type.startsWith('image/')) {
+      throw new Error('OpenAI only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+  }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    let messages = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      messages = [
+        ...messages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:image/png;base64,${base64Content}` }, // Embed image
+            },
+          ],
+        },
+      ];
+    }
+
     const stream = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
-      messages: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
+      messages: messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : msg.role,
         content: msg.content,
       })),
       temperature: request?.temperature || 0.7,
@@ -39,11 +67,28 @@ export class OpenAIProvider extends AIProviderBase {
     if (request.stream) {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
+    let messages = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      messages = [
+        ...messages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:image/png;base64,${base64Content}` }, // Embed image
+            },
+          ],
+        },
+      ];
+    }
 
     const completion = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
-      messages: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
+      messages: messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : msg.role,
         content: msg.content,
       })),
       temperature: request?.temperature || 0.7,

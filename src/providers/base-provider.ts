@@ -12,4 +12,10 @@ export abstract class AIProviderBase implements AIProvider {
       return total + contentTokens;
     }, 0);
   }
+
+  protected async convertFileToBase64(file: File): Promise<string> {
+    const buffer = await file.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    return base64;
+  }
 }

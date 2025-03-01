@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
 import { AIProvider, AICompletionRequest } from '../types/ai-provider';
 import { completionSchema } from '../validators/completion';
 
@@ -7,8 +6,39 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
   const router = new Hono();
 
   // Create completion
-  router.post('/', zValidator('json', completionSchema), async c => {
-    const body = c.req.valid('json');
+  router.post('/', async c => {
+    let body;
+    const contentType = c.req.header('content-type') || '';
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await c.req.formData();
+      const requestJson = formData.get('request');
+      const inputFile = formData.get('input_file');
+
+      if (!requestJson) {
+        return c.json({ error: 'Missing request parameters' }, 400);
+      }
+
+      try {
+        body = JSON.parse(requestJson.toString());
+        if (inputFile && inputFile instanceof File) {
+          body.input_file = inputFile;
+        }
+      } catch (error) {
+        return c.json({ error: 'Invalid JSON in request parameter' }, 400);
+      }
+    } else {
+      body = await c.req.json();
+    }
+
+    const validationResult = completionSchema.safeParse(body);
+    if (!validationResult.success) {
+      return c.json(
+        { error: 'Invalid request parameters', details: validationResult.error.errors },
+        400
+      );
+    }
+    body = validationResult.data;
     const provider = providers.get(body.provider);
 
     if (!provider) {
@@ -23,6 +53,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
         model: body.model,
         stream: body.stream,
         show_stats: body.show_stats,
+        input_file: body.input_file,
       };
 
       if (body.stream && provider.getCompletionStream) {
@@ -36,6 +67,15 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
             async start(controller) {
               try {
                 for await (const chunk of stream) {
+                  if (chunk.error) {
+                    const errorData = JSON.stringify({
+                      error: chunk.error,
+                      status: 400,
+                    });
+                    controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
+                    controller.close();
+                    return;
+                  }
                   const data = JSON.stringify({
                     content: chunk.content,
                     ...(body.show_stats
@@ -49,7 +89,13 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
                   controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
                 }
               } catch (error) {
-                controller.error(error);
+                const errorMessage =
+                  error instanceof Error ? error.message : 'An unknown error occurred';
+                const errorData = JSON.stringify({
+                  error: errorMessage,
+                  status: 400,
+                });
+                controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
               } finally {
                 controller.close();
               }
@@ -73,7 +119,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
       return c.json(responseBody);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      return c.json({ error: errorMessage }, 500);
+      return c.json({ error: errorMessage }, 400);
     }
   });
 

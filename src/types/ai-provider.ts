@@ -1,6 +1,14 @@
+export interface AIMessageContent {
+  type: 'text' | 'image_url';
+  content?: string;
+  image_url?: {
+    data: string;
+  };
+}
+
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
-  content: string;
+  content: string | AIMessageContent[];
 }
 
 export interface AICompletionRequest {
@@ -10,6 +18,7 @@ export interface AICompletionRequest {
   model?: string;
   stream?: boolean;
   show_stats?: boolean;
+  input_file?: File;
 }
 
 export interface AICompletionResponse {
