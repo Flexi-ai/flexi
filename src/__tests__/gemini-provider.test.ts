@@ -43,6 +43,61 @@ describe('GeminiProvider', () => {
       const response = await provider.getCompletion(request);
       expect(response.provider).toBe('gemini');
     });
+
+    test('handles input_file in request', async () => {
+      const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
+      const imageFile = Bun.file(testImagePath);
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Describe this image' }],
+        input_file: imageFile,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('gemini');
+      expect(response.content).toBeTruthy();
+    });
+
+    test('handles temperature parameter', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        temperature: 0.5,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('gemini');
+    });
+
+    test('handles maxTokens parameter', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        maxTokens: 500,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('gemini');
+    });
+
+    test('shows usage stats when requested', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        show_stats: true,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.usage).toBeDefined();
+      expect(response.usage).toHaveProperty('promptTokens');
+      expect(response.usage).toHaveProperty('completionTokens');
+      expect(response.usage).toHaveProperty('totalTokens');
+    });
+
+    test('throws error for invalid API key', async () => {
+      const invalidProvider = new GeminiProvider('invalid-key');
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+      };
+
+      await expect(invalidProvider.getCompletion(request)).rejects.toThrow();
+    });
   });
 
   (hasGeminiKey ? describe : describe.skip)('getCompletionStream', () => {
@@ -57,6 +112,55 @@ describe('GeminiProvider', () => {
       expect(firstChunk).toHaveProperty('content');
       expect(firstChunk).toHaveProperty('model');
       expect(firstChunk).toHaveProperty('provider', 'gemini');
+    });
+
+    test('handles input_file in stream request', async () => {
+      const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
+      const imageFile = Bun.file(testImagePath);
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Describe this image' }],
+        input_file: imageFile,
+      };
+
+      const chunks: string[] = [];
+      for await (const chunk of provider.getCompletionStream(request)) {
+        chunks.push(chunk.content);
+      }
+
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(chunks.join('')).toBeTruthy();
+    });
+
+    test('handles streaming with multiple messages', async () => {
+      const request: AICompletionRequest = {
+        messages: [
+          { role: 'user', content: 'Hello' },
+          { role: 'assistant', content: 'Hi there' },
+          { role: 'user', content: 'How are you?' },
+        ],
+      };
+
+      const chunks: string[] = [];
+      for await (const chunk of provider.getCompletionStream(request)) {
+        chunks.push(chunk.content);
+      }
+
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(chunks.join('')).toBeTruthy();
+    });
+
+    test('respects custom temperature and max tokens in stream', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        temperature: 0.5,
+        maxTokens: 500,
+      };
+
+      const generator = provider.getCompletionStream(request);
+      const firstChunk = (await generator.next()).value;
+
+      expect(firstChunk).toBeDefined();
+      expect(firstChunk).toHaveProperty('content');
     });
   });
 
