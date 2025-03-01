@@ -1,5 +1,5 @@
 export interface AIMessage {
-  role: 'user' | 'assistant' | 'system' | 'bot';
+  role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
@@ -9,6 +9,7 @@ export interface AICompletionRequest {
   maxTokens?: number;
   model?: string;
   stream?: boolean;
+  show_stats?: boolean;
 }
 
 export interface AICompletionResponse {
