@@ -45,7 +45,7 @@ describe('OpenAIProvider', () => {
       const response = await provider.getCompletion(request);
       expect(response.provider).toBe('openai');
       expect(response.content).toBeTruthy();
-    });
+    }, 10000); // Increase timeout to 10 seconds for image processing
 
     test('handles temperature parameter', async () => {
       const request: AICompletionRequest = {
@@ -110,7 +110,7 @@ describe('OpenAIProvider', () => {
 
       expect(firstChunk).toHaveProperty('content');
       expect(firstChunk).toHaveProperty('provider', 'openai');
-    });
+    }, 10000); // Increase timeout to 10 seconds for image processing
   });
 
   (hasOpenAIKey ? describe : describe.skip)('listAvailableModels', () => {
