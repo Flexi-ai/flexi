@@ -1,14 +1,19 @@
 export interface AIMessageContent {
-  type: 'text' | 'image_url';
+  type: 'text' | 'image_url' | 'image';
   content?: string;
   image_url?: {
+    data: string;
+  };
+  source?: {
+    type: string;
+    media_type: string;
     data: string;
   };
 }
 
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
-  content: string | AIMessageContent[];
+  content: string;
 }
 
 export interface AICompletionRequest {

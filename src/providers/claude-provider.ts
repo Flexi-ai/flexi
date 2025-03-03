@@ -49,7 +49,7 @@ export class ClaudeProvider extends AIProviderBase {
     let completionTokens = 0;
 
     if (request.show_stats && !request.stream) {
-      promptTokens = { totalTokens: this.countMessageTokens(request.messages) };
+      promptTokens = { totalTokens: this.countMessageTokens(messages) };
     }
 
     for await (const chunk of stream) {
@@ -112,7 +112,7 @@ export class ClaudeProvider extends AIProviderBase {
     let completionTokens = 0;
 
     if (request.show_stats) {
-      promptTokens = { totalTokens: this.countMessageTokens(request.messages) };
+      promptTokens = { totalTokens: this.countMessageTokens(messages) };
       completionTokens = this.countMessageTokens([
         { content: completion.content[0].type === 'text' ? completion.content[0].text : '' },
       ]);
