@@ -24,7 +24,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
         if (inputFile && inputFile instanceof File) {
           body.input_file = inputFile;
         }
-      } catch (error) {
+      } catch {
         return c.json({ error: 'Invalid JSON in request parameter' }, 500);
       }
     } else {

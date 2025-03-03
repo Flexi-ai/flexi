@@ -22,6 +22,10 @@ export default [
         Response: true,
         ReadableStream: true,
         TextEncoder: true,
+        URL: true,
+        Bun: true,
+        File: true,
+        Buffer: true,
       },
     },
     linterOptions: {
