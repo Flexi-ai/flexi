@@ -3,6 +3,7 @@ import { OpenAIProvider } from './providers/openai-provider';
 import { ClaudeProvider } from './providers/claude-provider';
 import { GeminiProvider } from './providers/gemini-provider';
 import { DeepseekProvider } from './providers/deepseek-provider';
+import { PerplexityProvider } from './providers/perplexity-provider';
 import { AIProvider } from './types/ai-provider';
 import { swaggerUI } from '@hono/swagger-ui';
 import { createProviderRoutes } from './routes/providers';
@@ -26,6 +27,9 @@ if (process.env.GEMINI_API_KEY) {
 }
 if (process.env.DEEPSEEK_API_KEY) {
   providers.set('deepseek', new DeepseekProvider(process.env.DEEPSEEK_API_KEY));
+}
+if (process.env.PERPLEXITY_API_KEY) {
+  providers.set('perplexity', new PerplexityProvider(process.env.PERPLEXITY_API_KEY));
 }
 
 // Swagger API schema
