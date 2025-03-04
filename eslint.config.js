@@ -22,6 +22,8 @@ export default [
         Response: true,
         ReadableStream: true,
         TextEncoder: true,
+        TextDecoder: true,
+        fetch: true,
         URL: true,
         Bun: true,
         File: true,
