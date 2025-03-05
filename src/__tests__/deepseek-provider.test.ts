@@ -35,7 +35,10 @@ describe('DeepseekProvider', () => {
 
     test('handles input_file in request', async () => {
       const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
-      const imageFile = Bun.file(testImagePath);
+      const bunFile = Bun.file(testImagePath);
+      const imageFile = new File([await bunFile.arrayBuffer()], 'text-based-image.png', {
+        type: 'image/png',
+      });
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Describe this image' }],
         input_file: imageFile,
@@ -104,7 +107,10 @@ describe('DeepseekProvider', () => {
 
     test('handles input_file in stream request', async () => {
       const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
-      const imageFile = Bun.file(testImagePath);
+      const bunFile = Bun.file(testImagePath);
+      const imageFile = new File([await bunFile.arrayBuffer()], 'text-based-image.png', {
+        type: 'image/png',
+      });
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Describe this image' }],
         input_file: imageFile,

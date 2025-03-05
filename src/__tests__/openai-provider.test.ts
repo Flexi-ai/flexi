@@ -31,11 +31,14 @@ describe('OpenAIProvider', () => {
 
       const response = await provider.getCompletion(request);
       expect(response.provider).toBe('openai');
-    });
+    }, 10000);
 
     test('handles input_file in request', async () => {
       const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
-      const imageFile = Bun.file(testImagePath);
+      const bunFile = Bun.file(testImagePath);
+      const imageFile = new File([await bunFile.arrayBuffer()], 'text-based-image.png', {
+        type: 'image/png',
+      });
       const request: AICompletionRequest = {
         model: 'gpt-4-turbo',
         messages: [{ role: 'user', content: 'Describe this image' }],
@@ -97,7 +100,10 @@ describe('OpenAIProvider', () => {
 
     test('handles input_file in stream request', async () => {
       const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
-      const imageFile = Bun.file(testImagePath);
+      const bunFile = Bun.file(testImagePath);
+      const imageFile = new File([await bunFile.arrayBuffer()], 'text-based-image.png', {
+        type: 'image/png',
+      });
       const request: AICompletionRequest = {
         model: 'gpt-4-turbo',
         messages: [{ role: 'user', content: 'Describe this image' }],

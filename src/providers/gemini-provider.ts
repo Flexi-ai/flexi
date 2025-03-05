@@ -3,20 +3,19 @@ import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../typ
 import { AIProviderBase } from './base-provider';
 
 type AIContentMessage = {
-    role:  'model' | 'user',
-    parts: [{ text: string }],
-}
+  role: 'model' | 'user';
+  parts: [{ text: string }];
+};
 
 type AIImageMessage = {
-  role: 'user',
-  parts:
-    {
-      inlineData: {
-        mimeType: string,
-        data: string,
-      },
-    }[],
-}
+  role: 'user';
+  parts: {
+    inlineData: {
+      mimeType: string;
+      data: string;
+    };
+  }[];
+};
 export class GeminiProvider extends AIProviderBase {
   private client: GoogleGenerativeAI;
   name = 'gemini';

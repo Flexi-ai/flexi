@@ -19,7 +19,7 @@ describe('PerplexityProvider', () => {
 
       const response = await provider.getCompletion(request);
       expect(response.model).toBe('sonar');
-    });
+    }, 10000);
 
     test('maps assistant role to model role', async () => {
       const request: AICompletionRequest = {

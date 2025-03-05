@@ -1,4 +1,9 @@
-import { AICompletionRequest, AICompletionResponse, AIMessage, AIStreamChunk } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIMessage,
+  AIStreamChunk,
+} from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 import OpenAI from 'openai';
 
@@ -9,8 +14,7 @@ type AIImageMessage = {
     image_url: {
       url: string;
     };
-
-  }[]
+  }[];
 };
 
 export class DeepseekProvider extends AIProviderBase {

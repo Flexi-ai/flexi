@@ -1,5 +1,10 @@
 import { OpenAI } from 'openai';
-import { AICompletionRequest, AICompletionResponse, AIMessage, AIStreamChunk } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIMessage,
+  AIStreamChunk,
+} from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 
 type AIImageMessage = {
@@ -9,8 +14,7 @@ type AIImageMessage = {
     image_url: {
       url: string;
     };
-
-  }[]
+  }[];
 };
 
 export class OpenAIProvider extends AIProviderBase {
@@ -23,7 +27,7 @@ export class OpenAIProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
-    let updatedMessages :(AIMessage | AIImageMessage)[]  = request.messages;
+    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);

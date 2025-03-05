@@ -23,7 +23,7 @@ export interface AICompletionRequest {
   model?: string;
   stream?: boolean;
   show_stats?: boolean;
-  input_file?: File extends {webkitRelativePath: string} ? File : File;
+  input_file?: File;
 }
 
 export interface AICompletionResponse {

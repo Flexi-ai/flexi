@@ -1,18 +1,22 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import { AICompletionRequest, AICompletionResponse, AIMessage, AIStreamChunk } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIMessage,
+  AIStreamChunk,
+} from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
-
 
 type AIImageMessage = {
   role: 'user';
-  content:  {
+  content: {
     type: 'image';
     source: {
-      type: 'base64',
-      media_type: string,
-      data: string,
-    }
-  }[]
+      type: 'base64';
+      media_type: string;
+      data: string;
+    };
+  }[];
 };
 
 export class ClaudeProvider extends AIProviderBase {
@@ -25,7 +29,7 @@ export class ClaudeProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
-    let updatedMessages :(AIMessage | AIImageMessage)[]  = request.messages;
+    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
@@ -62,7 +66,13 @@ export class ClaudeProvider extends AIProviderBase {
     let completionTokens = 0;
 
     if (request.show_stats && !request.stream) {
-      promptTokens = { totalTokens: this.countMessageTokens(updatedMessages.map((msg) => {return {content: JSON.stringify(msg.content)}})) };
+      promptTokens = {
+        totalTokens: this.countMessageTokens(
+          updatedMessages.map(msg => {
+            return { content: JSON.stringify(msg.content) };
+          })
+        ),
+      };
     }
 
     for await (const chunk of stream) {
@@ -125,7 +135,13 @@ export class ClaudeProvider extends AIProviderBase {
     let completionTokens = 0;
 
     if (request.show_stats) {
-      promptTokens = { totalTokens: this.countMessageTokens(updatedMessages.map((msg) => {return {content: JSON.stringify(msg.content)}})) };
+      promptTokens = {
+        totalTokens: this.countMessageTokens(
+          updatedMessages.map(msg => {
+            return { content: JSON.stringify(msg.content) };
+          })
+        ),
+      };
       completionTokens = this.countMessageTokens([
         { content: completion.content[0].type === 'text' ? completion.content[0].text : '' },
       ]);
