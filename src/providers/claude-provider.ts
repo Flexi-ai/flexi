@@ -7,20 +7,18 @@ import {
 } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 
+type MediaType = 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif';
+
 type AIImageMessage = {
   role: 'user';
   content: {
     type: 'image';
     source: {
       type: 'base64';
-      media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+      media_type: MediaType;
       data: string;
     };
   }[];
-};
-
-const isValidImageFileType = (type: string) => {
-  return type === 'image/jpeg' || type === 'image/png' || type === 'image/webp';
 };
 
 export class ClaudeProvider extends AIProviderBase {
@@ -36,10 +34,9 @@ export class ClaudeProvider extends AIProviderBase {
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
-      if (!isValidImageFileType(request.input_file.type)) {
-        throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
-      }
+
       const base64Content = await this.convertFileToBase64(request.input_file);
+      const mediaType = request.input_file.type as MediaType;
       updatedMessages = [
         ...updatedMessages,
         {
@@ -49,7 +46,7 @@ export class ClaudeProvider extends AIProviderBase {
               type: 'image',
               source: {
                 type: 'base64',
-                media_type: request.input_file.type,
+                media_type: mediaType,
                 data: base64Content,
               },
             },
@@ -118,9 +115,7 @@ export class ClaudeProvider extends AIProviderBase {
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
-      if (!isValidImageFileType(request.input_file.type)) {
-        throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
-      }
+      const mediaType = request.input_file.type as MediaType;
       const base64Content = await this.convertFileToBase64(request.input_file);
       updatedMessages = [
         ...updatedMessages,
@@ -131,7 +126,7 @@ export class ClaudeProvider extends AIProviderBase {
               type: 'image',
               source: {
                 type: 'base64',
-                media_type: request.input_file.type,
+                media_type: mediaType,
                 data: base64Content,
               },
             },

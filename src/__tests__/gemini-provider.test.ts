@@ -12,6 +12,38 @@ describe('GeminiProvider', () => {
   });
 
   (hasGeminiKey ? describe : describe.skip)('getCompletion', () => {
+    test('rejects txt files in input_file', async () => {
+      const testTxtPath = new URL('./data-sources/test.txt', import.meta.url);
+      const bunFile = Bun.file(testTxtPath);
+      const txtFile = new File([await bunFile.arrayBuffer()], 'test.txt', {
+        type: 'text/plain',
+      });
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Read this file' }],
+        input_file: txtFile,
+      };
+
+      await expect(provider.getCompletion(request)).rejects.toThrow(
+        'Only supports image files (PNG, JPEG, and WEBP)'
+      );
+    });
+
+    test('rejects gif files in input_file', async () => {
+      const testGifPath = new URL('./data-sources/test.gif', import.meta.url);
+      const bunFile = Bun.file(testGifPath);
+      const gifFile = new File([await bunFile.arrayBuffer()], 'test.gif', {
+        type: 'image/gif',
+      });
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Analyze this image' }],
+        input_file: gifFile,
+      };
+
+      await expect(provider.getCompletion(request)).rejects.toThrow(
+        'Only supports image files (PNG, JPEG, and WEBP)'
+      );
+    });
+
     test('throws error when stream is true', async () => {
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Hello' }],
