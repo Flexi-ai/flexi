@@ -1,4 +1,9 @@
-import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIStreamChunk,
+  ModelTypes,
+} from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 
 export class PerplexityProvider extends AIProviderBase {
@@ -11,13 +16,16 @@ export class PerplexityProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    const model = request.model || 'sonar';
+    this.validateModel('text', model);
+
     let messages = request.messages.map(msg => ({
       role: msg.role === 'assistant' ? 'assistant' : 'user',
       content: msg.content,
     }));
 
     const requestBody = {
-      model: request.model || 'sonar',
+      model,
       messages,
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
@@ -136,13 +144,16 @@ export class PerplexityProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
 
+    const model = request.model || 'sonar';
+    this.validateModel('text', model);
+
     let messages = request.messages.map(msg => ({
       role: msg.role === 'assistant' ? 'assistant' : 'user',
       content: msg.content,
     }));
 
     const requestBody = {
-      model: request.model || 'sonar',
+      model,
       messages,
       temperature: request?.temperature ?? 0.7,
       max_tokens: request?.maxTokens ?? 1000,
@@ -207,7 +218,9 @@ export class PerplexityProvider extends AIProviderBase {
     };
   }
 
-  async listAvailableModels(): Promise<string[]> {
-    return ['sonar-deep-research', 'sonar-reasoning-pro', 'sonar-reasoning', 'sonar-pro', 'sonar'];
+  listAvailableModels(): ModelTypes {
+    return {
+      text: ['sonar-deep-research', 'sonar-reasoning-pro', 'sonar-reasoning', 'sonar-pro', 'sonar'],
+    };
   }
 }

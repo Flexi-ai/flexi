@@ -1,9 +1,23 @@
-import { AICompletionRequest, AICompletionResponse, AIProvider } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIProvider,
+  ModelTypes,
+} from '../types/ai-provider';
 
 export abstract class AIProviderBase implements AIProvider {
   abstract name: string;
   abstract getCompletion(request: AICompletionRequest): Promise<AICompletionResponse>;
-  abstract listAvailableModels(): Promise<string[]>;
+  abstract listAvailableModels(): ModelTypes;
+
+  protected validateModel(type: string, model: string) {
+    const availableModels = this.listAvailableModels()[type as keyof ModelTypes];
+    if (!availableModels.includes(model)) {
+      throw new Error(
+        'Invalid model used. Use /provider/models api to know which models are supported'
+      );
+    }
+  }
 
   protected countMessageTokens(messages: { content: string }[]): number {
     return messages.reduce((total, msg) => {

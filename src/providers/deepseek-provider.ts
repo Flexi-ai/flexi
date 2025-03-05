@@ -3,6 +3,7 @@ import {
   AICompletionResponse,
   AIMessage,
   AIStreamChunk,
+  ModelTypes,
 } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 import OpenAI from 'openai';
@@ -30,7 +31,11 @@ export class DeepseekProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    const model = request.model || 'deepseek-chat';
+    this.validateModel('text', model);
+
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
@@ -49,7 +54,7 @@ export class DeepseekProvider extends AIProviderBase {
     }
 
     const stream = await this.client.chat.completions.create({
-      model: request.model || 'deepseek-chat',
+      model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
           return {
@@ -84,6 +89,9 @@ export class DeepseekProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
 
+    const model = request.model || 'deepseek-chat';
+    this.validateModel('text', model);
+
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
@@ -103,7 +111,7 @@ export class DeepseekProvider extends AIProviderBase {
     }
 
     const completion = await this.client.chat.completions.create({
-      model: request.model || 'deepseek-chat',
+      model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
           return {
@@ -135,7 +143,9 @@ export class DeepseekProvider extends AIProviderBase {
     };
   }
 
-  async listAvailableModels(): Promise<string[]> {
-    return ['deepseek-chat', 'deepseek-reasoner'];
+  listAvailableModels(): ModelTypes {
+    return {
+      text: ['deepseek-chat', 'deepseek-reasoner'],
+    };
   }
 }

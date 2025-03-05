@@ -1,3 +1,7 @@
+export type ModelTypes = {
+  text: string[];
+};
+
 export interface AIMessageContent {
   type: 'text' | 'image_url' | 'image';
   content?: string;
@@ -53,5 +57,5 @@ export interface AIProvider {
   name: string;
   getCompletion(request: AICompletionRequest): Promise<AICompletionResponse>;
   getCompletionStream?(request: AICompletionRequest): AsyncGenerator<AIStreamChunk>;
-  listAvailableModels(): Promise<string[]>;
+  listAvailableModels(): ModelTypes;
 }

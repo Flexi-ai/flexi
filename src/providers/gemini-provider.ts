@@ -1,5 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIStreamChunk,
+  ModelTypes,
+} from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 
 type AIContentMessage = {
@@ -26,7 +31,9 @@ export class GeminiProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
-    const model = this.client.getGenerativeModel({ model: request.model || 'gemini-2.0-flash' });
+    const model = request.model || 'gemini-2.0-flash';
+    this.validateModel('text', model);
+
     let updatedContents: (AIContentMessage | AIImageMessage)[] = request.messages.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: msg.content }],
@@ -49,7 +56,8 @@ export class GeminiProvider extends AIProviderBase {
       updatedContents.push(imageData);
     }
 
-    const result = await model.generateContentStream({
+    const providerModel = this.client.getGenerativeModel({ model });
+    const result = await providerModel.generateContentStream({
       contents: updatedContents,
       generationConfig: {
         temperature: request?.temperature || 0.7,
@@ -70,7 +78,10 @@ export class GeminiProvider extends AIProviderBase {
     if (request.stream) {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
-    const model = this.client.getGenerativeModel({ model: request.model || 'gemini-2.0-flash' });
+
+    const model = request.model || 'gemini-2.0-flash';
+    this.validateModel('text', model);
+
     let updatedContents: (AIContentMessage | AIImageMessage)[] = request.messages.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: msg.content }],
@@ -93,7 +104,8 @@ export class GeminiProvider extends AIProviderBase {
       updatedContents.push(imageData);
     }
 
-    const result = await model.generateContent({
+    const providerModel = this.client.getGenerativeModel({ model });
+    const result = await providerModel.generateContent({
       contents: updatedContents,
       generationConfig: {
         temperature: request?.temperature || 0.7,
@@ -123,13 +135,15 @@ export class GeminiProvider extends AIProviderBase {
     };
   }
 
-  async listAvailableModels(): Promise<string[]> {
-    return [
-      'gemini-2.0-flash',
-      'gemini-2.0-flash-lite',
-      'gemini-1.5-flash',
-      'gemini-1.5-flash-8b',
-      'gemini-1.5-pro',
-    ];
+  listAvailableModels(): ModelTypes {
+    return {
+      text: [
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-1.5-flash',
+        'gemini-1.5-flash-8b',
+        'gemini-1.5-pro',
+      ],
+    };
   }
 }

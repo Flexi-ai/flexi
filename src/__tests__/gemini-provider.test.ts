@@ -202,12 +202,28 @@ describe('GeminiProvider', () => {
     });
   });
 
-  (hasGeminiKey ? describe : describe.skip)('listAvailableModels', () => {
-    test('returns array of model names', async () => {
-      const models = await provider.listAvailableModels();
-      expect(Array.isArray(models)).toBe(true);
-      expect(models.length).toBeGreaterThan(0);
-      expect(models).toContain('gemini-2.0-flash');
-    });
+  test('returns available models with correct structure', async () => {
+    const models = await provider.listAvailableModels();
+    expect(models).toHaveProperty('text');
+    expect(Array.isArray(models.text)).toBe(true);
+    expect(models.text.length).toBeGreaterThan(0);
+    expect(models.text).toContain('gemini-2.0-flash');
+    expect(models.text).toContain('gemini-2.0-flash-lite');
+  });
+
+  test('validates correct model type', async () => {
+    const models = await provider.listAvailableModels();
+    expect(models.text).toContain('gemini-2.0-flash');
+  });
+
+  test('throws error for invalid model', async () => {
+    const request: AICompletionRequest = {
+      messages: [{ role: 'user', content: 'Hello' }],
+      model: 'invalid-model',
+    };
+
+    await expect(provider.getCompletion(request)).rejects.toThrow(
+      'Invalid model used. Use /provider/models api to know which models are supported'
+    );
   });
 });
