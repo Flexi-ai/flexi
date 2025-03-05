@@ -25,9 +25,9 @@ export class PerplexityProvider extends AIProviderBase {
     };
 
     if (request.input_file) {
+      this.validateImageFile(request.input_file);
       throw new Error('Perplexity does not support image inputs for now');
       // TODO: Add support for image inputs
-      // this.validateImageFile(request.input_file);
       // const base64Content = (await this.convertFileToBase64(request.input_file)).split(',')[1];
       // const imageMessage = {
       //   role: 'user',
@@ -149,9 +149,9 @@ export class PerplexityProvider extends AIProviderBase {
     };
 
     if (request.input_file) {
+      this.validateImageFile(request.input_file);
       throw new Error('Perplexity does not support image inputs for now');
       // TODO: Add support for image inputs
-      // this.validateImageFile(request.input_file);
       // const base64Content = await this.convertFileToBase64(request.input_file);
       // const imageMessage = {
       //   role: 'user',
