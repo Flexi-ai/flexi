@@ -13,10 +13,16 @@ type AIImageMessage = {
     type: 'image';
     source: {
       type: 'base64';
-      media_type: string;
+      media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
       data: string;
     };
   }[];
+};
+
+const isValidImageFileType = (type: string) => {
+  return (
+    type === 'image/jpeg' || type === 'image/png' || type === 'image/gif' || type === 'image/webp'
+  );
 };
 
 export class ClaudeProvider extends AIProviderBase {
@@ -30,7 +36,7 @@ export class ClaudeProvider extends AIProviderBase {
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
-    if (request.input_file) {
+    if (request.input_file && isValidImageFileType(request.input_file.type)) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
       updatedMessages = [
@@ -53,10 +59,18 @@ export class ClaudeProvider extends AIProviderBase {
 
     const stream = await this.client.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
-      messages: updatedMessages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: JSON.stringify(msg.content),
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : 'user',
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
       stream: true,
@@ -101,7 +115,7 @@ export class ClaudeProvider extends AIProviderBase {
 
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
-    if (request.input_file) {
+    if (request.input_file && isValidImageFileType(request.input_file.type)) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
       updatedMessages = [
@@ -124,10 +138,18 @@ export class ClaudeProvider extends AIProviderBase {
 
     const completion = await this.client.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
-      messages: updatedMessages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: JSON.stringify(msg.content),
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : 'user',
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
     });

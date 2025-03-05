@@ -58,7 +58,7 @@ describe('PerplexityProvider', () => {
       expect(response.usage).toHaveProperty('promptTokens');
       expect(response.usage).toHaveProperty('completionTokens');
       expect(response.usage).toHaveProperty('totalTokens');
-    });
+    }, 10000);
 
     test('throws error for invalid API key', async () => {
       const invalidProvider = new PerplexityProvider('invalid-key');

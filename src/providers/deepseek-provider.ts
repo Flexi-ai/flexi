@@ -50,10 +50,18 @@ export class DeepseekProvider extends AIProviderBase {
 
     const stream = await this.client.chat.completions.create({
       model: request.model || 'deepseek-chat',
-      messages: updatedMessages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: JSON.stringify(msg.content),
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : msg.role,
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
       stream: true,
@@ -96,10 +104,18 @@ export class DeepseekProvider extends AIProviderBase {
 
     const completion = await this.client.chat.completions.create({
       model: request.model || 'deepseek-chat',
-      messages: updatedMessages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: JSON.stringify(msg.content),
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : msg.role,
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
     });

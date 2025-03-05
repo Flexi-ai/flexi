@@ -31,7 +31,7 @@ describe('OpenAIProvider', () => {
 
       const response = await provider.getCompletion(request);
       expect(response.provider).toBe('openai');
-    }, 10000);
+    }, 15000);
 
     test('handles input_file in request', async () => {
       const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);

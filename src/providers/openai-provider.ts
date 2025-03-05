@@ -47,10 +47,18 @@ export class OpenAIProvider extends AIProviderBase {
 
     const stream = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
-      messages: updatedMessages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : msg.role,
-        content: JSON.stringify(msg.content),
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : msg.role,
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
       stream: true,
@@ -92,10 +100,18 @@ export class OpenAIProvider extends AIProviderBase {
 
     const completion = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
-      messages: updatedMessages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : msg.role,
-        content: JSON.stringify(msg.content),
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : msg.role,
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
     });
