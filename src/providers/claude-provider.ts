@@ -4,6 +4,7 @@ import {
   AICompletionResponse,
   AIMessage,
   AIStreamChunk,
+  ModelTypes,
 } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 
@@ -31,7 +32,11 @@ export class ClaudeProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    const model = request.model || 'claude-3-5-sonnet-20241022';
+    this.validateModel('text', model);
+
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+
     if (request.input_file) {
       this.validateImageFile(request.input_file);
 
@@ -56,7 +61,7 @@ export class ClaudeProvider extends AIProviderBase {
     }
 
     const stream = await this.client.messages.create({
-      model: request.model || 'claude-3-5-sonnet-20241022',
+      model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
           return {
@@ -112,7 +117,15 @@ export class ClaudeProvider extends AIProviderBase {
   }
 
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
+    if (request.stream) {
+      throw new Error('For streaming responses, please use getCompletionStream method');
+    }
+
+    const model = request.model || 'claude-3-5-sonnet-20241022';
+    this.validateModel('text', model);
+
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const mediaType = request.input_file.type as MediaType;
@@ -136,7 +149,7 @@ export class ClaudeProvider extends AIProviderBase {
     }
 
     const completion = await this.client.messages.create({
-      model: request.model || 'claude-3-5-sonnet-20241022',
+      model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
           return {
@@ -182,16 +195,18 @@ export class ClaudeProvider extends AIProviderBase {
     };
   }
 
-  async listAvailableModels(): Promise<string[]> {
-    return [
-      'claude-3-7-sonnet-latest',
-      'claude-3-5-haiku-latest',
-      'claude-3-5-sonnet-latest',
-      'claude-3-5-sonnet-20240620',
-      'claude-3-opus-latest',
-      'claude-3-sonnet-20240229',
-      'claude-3-haiku-20240307',
-      'claude-3-5-sonnet-20241022',
-    ];
+  listAvailableModels(): ModelTypes {
+    return {
+      text: [
+        'claude-3-7-sonnet-latest',
+        'claude-3-5-haiku-latest',
+        'claude-3-5-sonnet-latest',
+        'claude-3-5-sonnet-20240620',
+        'claude-3-opus-latest',
+        'claude-3-sonnet-20240229',
+        'claude-3-haiku-20240307',
+        'claude-3-5-sonnet-20241022',
+      ],
+    };
   }
 }

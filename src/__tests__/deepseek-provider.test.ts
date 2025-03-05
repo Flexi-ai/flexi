@@ -190,21 +190,29 @@ describe('DeepseekProvider', () => {
     });
   });
 
-  (hasDeepseekKey ? describe : describe.skip)('listAvailableModels', () => {
-    test('returns array of model names', async () => {
-      const models = await provider.listAvailableModels();
-      expect(Array.isArray(models)).toBe(true);
-      expect(models.length).toBeGreaterThan(0);
-      expect(models).toContain('deepseek-chat');
-    });
+  test('returns available models with correct structure', async () => {
+    const models = await provider.listAvailableModels();
+    expect(models).toHaveProperty('text');
+    expect(Array.isArray(models.text)).toBe(true);
+    expect(models.text.length).toBeGreaterThan(0);
+    expect(models.text).toContain('deepseek-chat');
+    expect(models.text).toContain('deepseek-reasoner');
+  });
 
-    test('includes all supported models', async () => {
-      const models = await provider.listAvailableModels();
-      const expectedModels = ['deepseek-chat', 'deepseek-coder'];
-      for (const model of expectedModels) {
-        expect(models).toContain(model);
-      }
-    });
+  test('validates correct model type', async () => {
+    const models = await provider.listAvailableModels();
+    expect(models.text).toContain('deepseek-chat');
+  });
+
+  test('throws error for invalid model', async () => {
+    const request: AICompletionRequest = {
+      messages: [{ role: 'user', content: 'Hello' }],
+      model: 'invalid-model',
+    };
+
+    await expect(provider.getCompletion(request)).rejects.toThrow(
+      'Invalid model used. Use /provider/models api to know which models are supported'
+    );
   });
 
   test('provider name is set correctly', () => {

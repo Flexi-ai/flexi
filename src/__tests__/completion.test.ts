@@ -13,7 +13,9 @@ describe('Completion Routes', () => {
       getCompletion: mock<(request: AICompletionRequest) => Promise<AICompletionResponse>>(() =>
         Promise.resolve({ content: '', model: '', provider: '' })
       ),
-      listAvailableModels: mock(() => Promise.resolve(['test-model'])),
+      listAvailableModels: mock(() => ({
+        text: ['test-model'],
+      })),
     };
     const providers = new Map<string, AIProvider>();
     providers.set('test-provider', mockProvider);

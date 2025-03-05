@@ -4,6 +4,7 @@ import {
   AICompletionResponse,
   AIMessage,
   AIStreamChunk,
+  ModelTypes,
 } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 
@@ -27,7 +28,11 @@ export class OpenAIProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    const model = request.model || 'gpt-3.5-turbo';
+    this.validateModel('text', model);
+
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
@@ -46,7 +51,7 @@ export class OpenAIProvider extends AIProviderBase {
     }
 
     const stream = await this.client.chat.completions.create({
-      model: request.model || 'gpt-3.5-turbo',
+      model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
           return {
@@ -80,7 +85,12 @@ export class OpenAIProvider extends AIProviderBase {
     if (request.stream) {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
+
+    const model = request.model || 'gpt-3.5-turbo';
+    this.validateModel('text', model);
+
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
@@ -99,7 +109,7 @@ export class OpenAIProvider extends AIProviderBase {
     }
 
     const completion = await this.client.chat.completions.create({
-      model: request.model || 'gpt-3.5-turbo',
+      model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
           return {
@@ -131,19 +141,21 @@ export class OpenAIProvider extends AIProviderBase {
     };
   }
 
-  async listAvailableModels(): Promise<string[]> {
-    return [
-      'o1',
-      'o1-mini',
-      'o3-mini',
-      'chatgpt-4o-latest',
-      'gpt-3.5-turbo-instruct',
-      'gpt-3.5-turbo',
-      'gpt-3.5-turbo-16k',
-      'gpt-4-turbo',
-      'gpt-4',
-      'gpt-4o',
-      'gpt-4o-mini',
-    ];
+  listAvailableModels(): ModelTypes {
+    return {
+      text: [
+        'o1',
+        'o1-mini',
+        'o3-mini',
+        'chatgpt-4o-latest',
+        'gpt-3.5-turbo-instruct',
+        'gpt-3.5-turbo',
+        'gpt-3.5-turbo-16k',
+        'gpt-4-turbo',
+        'gpt-4',
+        'gpt-4o',
+        'gpt-4o-mini',
+      ],
+    };
   }
 }
