@@ -1,6 +1,17 @@
 import { OpenAI } from 'openai';
-import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
+import { AICompletionRequest, AICompletionResponse, AIMessage, AIStreamChunk } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
+
+type AIImageMessage = {
+  role: 'user';
+  content: {
+    type: 'image_url';
+    image_url: {
+      url: string;
+    };
+
+  }[]
+};
 
 export class OpenAIProvider extends AIProviderBase {
   private client: OpenAI;
@@ -12,12 +23,12 @@ export class OpenAIProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
-    let messages = request.messages;
+    let updatedMessages :(AIMessage | AIImageMessage)[]  = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
-      messages = [
-        ...messages,
+      updatedMessages = [
+        ...updatedMessages,
         {
           role: 'user',
           content: [
@@ -32,9 +43,9 @@ export class OpenAIProvider extends AIProviderBase {
 
     const stream = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
-      messages: messages.map(msg => ({
+      messages: updatedMessages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : msg.role,
-        content: msg.content,
+        content: JSON.stringify(msg.content),
       })),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
@@ -57,12 +68,12 @@ export class OpenAIProvider extends AIProviderBase {
     if (request.stream) {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
-    let messages = request.messages;
+    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
-      messages = [
-        ...messages,
+      updatedMessages = [
+        ...updatedMessages,
         {
           role: 'user',
           content: [
@@ -77,9 +88,9 @@ export class OpenAIProvider extends AIProviderBase {
 
     const completion = await this.client.chat.completions.create({
       model: request.model || 'gpt-3.5-turbo',
-      messages: messages.map(msg => ({
+      messages: updatedMessages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : msg.role,
-        content: msg.content,
+        content: JSON.stringify(msg.content),
       })),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,

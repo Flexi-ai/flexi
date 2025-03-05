@@ -23,7 +23,7 @@ export interface AICompletionRequest {
   model?: string;
   stream?: boolean;
   show_stats?: boolean;
-  input_file?: File;
+  input_file?: File extends {webkitRelativePath: string} ? File : File;
 }
 
 export interface AICompletionResponse {
@@ -46,6 +46,7 @@ export interface AIStreamChunk {
     completionTokens?: number;
     totalTokens?: number;
   };
+  error?: string;
 }
 
 export interface AIProvider {

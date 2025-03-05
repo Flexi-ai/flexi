@@ -1,6 +1,19 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
+import { AICompletionRequest, AICompletionResponse, AIMessage, AIStreamChunk } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
+
+
+type AIImageMessage = {
+  role: 'user';
+  content:  {
+    type: 'image';
+    source: {
+      type: 'base64',
+      media_type: string,
+      data: string,
+    }
+  }[]
+};
 
 export class ClaudeProvider extends AIProviderBase {
   private client: Anthropic;
@@ -12,12 +25,12 @@ export class ClaudeProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
-    let messages = request.messages;
+    let updatedMessages :(AIMessage | AIImageMessage)[]  = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
-      messages = [
-        ...messages,
+      updatedMessages = [
+        ...updatedMessages,
         {
           role: 'user',
           content: [
@@ -36,9 +49,9 @@ export class ClaudeProvider extends AIProviderBase {
 
     const stream = await this.client.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
-      messages: messages.map(msg => ({
+      messages: updatedMessages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
+        content: JSON.stringify(msg.content),
       })),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
@@ -49,7 +62,7 @@ export class ClaudeProvider extends AIProviderBase {
     let completionTokens = 0;
 
     if (request.show_stats && !request.stream) {
-      promptTokens = { totalTokens: this.countMessageTokens(messages) };
+      promptTokens = { totalTokens: this.countMessageTokens(updatedMessages.map((msg) => {return {content: JSON.stringify(msg.content)}})) };
     }
 
     for await (const chunk of stream) {
@@ -77,12 +90,12 @@ export class ClaudeProvider extends AIProviderBase {
   }
 
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
-    let messages = request.messages;
+    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
-      messages = [
-        ...messages,
+      updatedMessages = [
+        ...updatedMessages,
         {
           role: 'user',
           content: [
@@ -101,9 +114,9 @@ export class ClaudeProvider extends AIProviderBase {
 
     const completion = await this.client.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
-      messages: messages.map(msg => ({
+      messages: updatedMessages.map(msg => ({
         role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
+        content: JSON.stringify(msg.content),
       })),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
@@ -112,7 +125,7 @@ export class ClaudeProvider extends AIProviderBase {
     let completionTokens = 0;
 
     if (request.show_stats) {
-      promptTokens = { totalTokens: this.countMessageTokens(messages) };
+      promptTokens = { totalTokens: this.countMessageTokens(updatedMessages.map((msg) => {return {content: JSON.stringify(msg.content)}})) };
       completionTokens = this.countMessageTokens([
         { content: completion.content[0].type === 'text' ? completion.content[0].text : '' },
       ]);
