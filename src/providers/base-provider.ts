@@ -24,10 +24,10 @@ export abstract class AIProviderBase implements AIProvider {
     const imageTypes = ['image/png', 'image/jpeg', 'image/webp'];
     const fileExtension = file.name.toLowerCase().split('.').pop();
     if (!fileExtension || !imageExtensions.includes(`.${fileExtension}`)) {
-      throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
+      throw new Error('Only supports image files (PNG, JPEG, and WEBP)');
     }
     if (!imageTypes.includes(file.type)) {
-      throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
+      throw new Error('Only supports image files (PNG, JPEG, and WEBP)');
     }
   }
 }
