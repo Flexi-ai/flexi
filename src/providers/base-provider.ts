@@ -20,12 +20,13 @@ export abstract class AIProviderBase implements AIProvider {
   }
 
   protected validateImageFile(file: File): void {
-    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+    const imageExtensions = ['.png', '.jpeg', '.webp'];
+    const imageTypes = ['image/png', 'image/jpeg', 'image/webp'];
     const fileExtension = file.name.toLowerCase().split('.').pop();
     if (!fileExtension || !imageExtensions.includes(`.${fileExtension}`)) {
       throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
     }
-    if (!file.type.startsWith('image/')) {
+    if (!imageTypes.includes(file.type)) {
       throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
     }
   }
