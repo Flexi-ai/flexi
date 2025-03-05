@@ -20,9 +20,7 @@ type AIImageMessage = {
 };
 
 const isValidImageFileType = (type: string) => {
-  return (
-    type === 'image/jpeg' || type === 'image/png' || type === 'image/gif' || type === 'image/webp'
-  );
+  return type === 'image/jpeg' || type === 'image/png' || type === 'image/webp';
 };
 
 export class ClaudeProvider extends AIProviderBase {
@@ -36,8 +34,11 @@ export class ClaudeProvider extends AIProviderBase {
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
-    if (request.input_file && isValidImageFileType(request.input_file.type)) {
+    if (request.input_file) {
       this.validateImageFile(request.input_file);
+      if (!isValidImageFileType(request.input_file.type)) {
+        throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
+      }
       const base64Content = await this.convertFileToBase64(request.input_file);
       updatedMessages = [
         ...updatedMessages,
@@ -115,8 +116,11 @@ export class ClaudeProvider extends AIProviderBase {
 
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
-    if (request.input_file && isValidImageFileType(request.input_file.type)) {
+    if (request.input_file) {
       this.validateImageFile(request.input_file);
+      if (!isValidImageFileType(request.input_file.type)) {
+        throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
+      }
       const base64Content = await this.convertFileToBase64(request.input_file);
       updatedMessages = [
         ...updatedMessages,
