@@ -13,4 +13,5 @@ export const completionSchema = z.object({
   model: z.string().optional(),
   show_stats: z.boolean().optional().default(false),
   stream: z.boolean().optional().default(false),
+  input_file: z.instanceof(File).optional(),
 });

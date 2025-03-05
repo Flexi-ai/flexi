@@ -1,3 +1,16 @@
+export interface AIMessageContent {
+  type: 'text' | 'image_url' | 'image';
+  content?: string;
+  image_url?: {
+    data: string;
+  };
+  source?: {
+    type: string;
+    media_type: string;
+    data: string;
+  };
+}
+
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -10,6 +23,7 @@ export interface AICompletionRequest {
   model?: string;
   stream?: boolean;
   show_stats?: boolean;
+  input_file?: File;
 }
 
 export interface AICompletionResponse {
@@ -32,6 +46,7 @@ export interface AIStreamChunk {
     completionTokens?: number;
     totalTokens?: number;
   };
+  error?: string;
 }
 
 export interface AIProvider {

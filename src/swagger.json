@@ -109,6 +109,24 @@
         "requestBody": {
           "required": true,
           "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input_file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File to be processed by the AI model"
+                  },
+                  "request": {
+                    "type": "string",
+                    "format": "json",
+                    "description": "JSON string containing the request parameters",
+                    "example": "{\"provider\":\"openai\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello\"}]}"
+                  }
+                }
+              }
+            },
             "application/json": {
               "schema": {
                 "type": "object",

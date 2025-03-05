@@ -1,6 +1,21 @@
-import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIMessage,
+  AIStreamChunk,
+} from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 import OpenAI from 'openai';
+
+type AIImageMessage = {
+  role: 'user';
+  content: {
+    type: 'image_url';
+    image_url: {
+      url: string;
+    };
+  }[];
+};
 
 export class DeepseekProvider extends AIProviderBase {
   private client: OpenAI;
@@ -15,12 +30,38 @@ export class DeepseekProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      updatedMessages = [
+        ...updatedMessages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:image/png;base64,${base64Content}` },
+            },
+          ],
+        },
+      ];
+    }
+
     const stream = await this.client.chat.completions.create({
       model: request.model || 'deepseek-chat',
-      messages: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : msg.role,
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
       stream: true,
@@ -43,12 +84,38 @@ export class DeepseekProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
 
+    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      updatedMessages = [
+        ...updatedMessages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:image/png;base64,${base64Content}` },
+            },
+          ],
+        },
+      ];
+    }
+
     const completion = await this.client.chat.completions.create({
       model: request.model || 'deepseek-chat',
-      messages: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : msg.role,
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
     });

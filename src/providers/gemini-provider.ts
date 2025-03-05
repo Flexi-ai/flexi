@@ -2,6 +2,20 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
 
+type AIContentMessage = {
+  role: 'model' | 'user';
+  parts: [{ text: string }];
+};
+
+type AIImageMessage = {
+  role: 'user';
+  parts: {
+    inlineData: {
+      mimeType: string;
+      data: string;
+    };
+  }[];
+};
 export class GeminiProvider extends AIProviderBase {
   private client: GoogleGenerativeAI;
   name = 'gemini';
@@ -13,16 +27,36 @@ export class GeminiProvider extends AIProviderBase {
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
     const model = this.client.getGenerativeModel({ model: request.model || 'gemini-2.0-flash' });
+    let updatedContents: (AIContentMessage | AIImageMessage)[] = request.messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
+
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      const imageData: AIImageMessage = {
+        role: 'user',
+        parts: [
+          {
+            inlineData: {
+              mimeType: request.input_file.type,
+              data: base64Content,
+            },
+          },
+        ],
+      };
+      updatedContents.push(imageData);
+    }
+
     const result = await model.generateContentStream({
-      contents: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
-      })),
+      contents: updatedContents,
       generationConfig: {
         temperature: request?.temperature || 0.7,
         maxOutputTokens: request?.maxTokens || 1000,
       },
     });
+
     for await (const chunk of result.stream) {
       yield {
         content: chunk.text(),
@@ -37,11 +71,30 @@ export class GeminiProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
     const model = this.client.getGenerativeModel({ model: request.model || 'gemini-2.0-flash' });
+    let updatedContents: (AIContentMessage | AIImageMessage)[] = request.messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }],
+    }));
+
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      const imageData: AIImageMessage = {
+        role: 'user',
+        parts: [
+          {
+            inlineData: {
+              mimeType: request.input_file.type,
+              data: base64Content,
+            },
+          },
+        ],
+      };
+      updatedContents.push(imageData);
+    }
+
     const result = await model.generateContent({
-      contents: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
-      })),
+      contents: updatedContents,
       generationConfig: {
         temperature: request?.temperature || 0.7,
         maxOutputTokens: request?.maxTokens || 1000,

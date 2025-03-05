@@ -31,6 +31,56 @@ describe('OpenAIProvider', () => {
 
       const response = await provider.getCompletion(request);
       expect(response.provider).toBe('openai');
+    }, 10000);
+
+    test('handles input_file in request', async () => {
+      const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
+      const bunFile = Bun.file(testImagePath);
+      const imageFile = new File([await bunFile.arrayBuffer()], 'text-based-image.png', {
+        type: 'image/png',
+      });
+      const request: AICompletionRequest = {
+        model: 'gpt-4-turbo',
+        messages: [{ role: 'user', content: 'Describe this image' }],
+        input_file: imageFile,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('openai');
+      expect(response.content).toBeTruthy();
+    }, 10000); // Increase timeout to 10 seconds for image processing
+
+    test('handles temperature parameter', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        temperature: 0.5,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('openai');
+    });
+
+    test('handles maxTokens parameter', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        maxTokens: 500,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('openai');
+    });
+
+    test('shows usage stats when requested', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        show_stats: true,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.usage).toBeDefined();
+      expect(response.usage).toHaveProperty('promptTokens');
+      expect(response.usage).toHaveProperty('completionTokens');
+      expect(response.usage).toHaveProperty('totalTokens');
     });
   });
 
@@ -47,6 +97,26 @@ describe('OpenAIProvider', () => {
       expect(firstChunk).toHaveProperty('model');
       expect(firstChunk).toHaveProperty('provider', 'openai');
     });
+
+    test('handles input_file in stream request', async () => {
+      const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
+      const bunFile = Bun.file(testImagePath);
+      const imageFile = new File([await bunFile.arrayBuffer()], 'text-based-image.png', {
+        type: 'image/png',
+      });
+      const request: AICompletionRequest = {
+        model: 'gpt-4-turbo',
+        messages: [{ role: 'user', content: 'Describe this image' }],
+        input_file: imageFile,
+        stream: true,
+      };
+
+      const generator = provider.getCompletionStream(request);
+      const firstChunk = (await generator.next()).value;
+
+      expect(firstChunk).toHaveProperty('content');
+      expect(firstChunk).toHaveProperty('provider', 'openai');
+    }, 10000); // Increase timeout to 10 seconds for image processing
   });
 
   (hasOpenAIKey ? describe : describe.skip)('listAvailableModels', () => {

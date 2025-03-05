@@ -1,6 +1,27 @@
 import { Anthropic } from '@anthropic-ai/sdk';
-import { AICompletionRequest, AICompletionResponse, AIStreamChunk } from '../types/ai-provider';
+import {
+  AICompletionRequest,
+  AICompletionResponse,
+  AIMessage,
+  AIStreamChunk,
+} from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
+
+type AIImageMessage = {
+  role: 'user';
+  content: {
+    type: 'image';
+    source: {
+      type: 'base64';
+      media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+      data: string;
+    };
+  }[];
+};
+
+const isValidImageFileType = (type: string) => {
+  return type === 'image/jpeg' || type === 'image/png' || type === 'image/webp';
+};
 
 export class ClaudeProvider extends AIProviderBase {
   private client: Anthropic;
@@ -12,12 +33,45 @@ export class ClaudeProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      if (!isValidImageFileType(request.input_file.type)) {
+        throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
+      }
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      updatedMessages = [
+        ...updatedMessages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: request.input_file.type,
+                data: base64Content,
+              },
+            },
+          ],
+        },
+      ];
+    }
+
     const stream = await this.client.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
-      messages: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : 'user',
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
       stream: true,
@@ -27,7 +81,13 @@ export class ClaudeProvider extends AIProviderBase {
     let completionTokens = 0;
 
     if (request.show_stats && !request.stream) {
-      promptTokens = { totalTokens: this.countMessageTokens(request.messages) };
+      promptTokens = {
+        totalTokens: this.countMessageTokens(
+          updatedMessages.map(msg => {
+            return { content: JSON.stringify(msg.content) };
+          })
+        ),
+      };
     }
 
     for await (const chunk of stream) {
@@ -55,21 +115,59 @@ export class ClaudeProvider extends AIProviderBase {
   }
 
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
+    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+    if (request.input_file) {
+      this.validateImageFile(request.input_file);
+      if (!isValidImageFileType(request.input_file.type)) {
+        throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
+      }
+      const base64Content = await this.convertFileToBase64(request.input_file);
+      updatedMessages = [
+        ...updatedMessages,
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: request.input_file.type,
+                data: base64Content,
+              },
+            },
+          ],
+        },
+      ];
+    }
+
     const completion = await this.client.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
-      messages: request.messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
-      })),
+      messages: updatedMessages.map(msg => {
+        if (Array.isArray((msg as AIImageMessage).content)) {
+          return {
+            role: 'user',
+            content: (msg as AIImageMessage).content,
+          };
+        }
+        return {
+          role: msg.role === 'assistant' ? 'assistant' : 'user',
+          content: (msg as AIMessage).content,
+        };
+      }),
       temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
     });
-
     let promptTokens = null;
     let completionTokens = 0;
 
     if (request.show_stats) {
-      promptTokens = { totalTokens: this.countMessageTokens(request.messages) };
+      promptTokens = {
+        totalTokens: this.countMessageTokens(
+          updatedMessages.map(msg => {
+            return { content: JSON.stringify(msg.content) };
+          })
+        ),
+      };
       completionTokens = this.countMessageTokens([
         { content: completion.content[0].type === 'text' ? completion.content[0].text : '' },
       ]);

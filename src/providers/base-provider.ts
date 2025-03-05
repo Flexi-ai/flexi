@@ -12,4 +12,21 @@ export abstract class AIProviderBase implements AIProvider {
       return total + contentTokens;
     }, 0);
   }
+
+  protected async convertFileToBase64(file: File): Promise<string> {
+    const buffer = await file.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    return base64;
+  }
+
+  protected validateImageFile(file: File): void {
+    const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+    const fileExtension = file.name.toLowerCase().split('.').pop();
+    if (!fileExtension || !imageExtensions.includes(`.${fileExtension}`)) {
+      throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Only supports image files (PNG, JPG, JPEG, and WEBP)');
+    }
+  }
 }

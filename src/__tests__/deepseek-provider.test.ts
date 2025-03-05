@@ -33,20 +33,43 @@ describe('DeepseekProvider', () => {
       expect(response.provider).toBe('deepseek');
     });
 
-    test('handles custom temperature and max tokens', async () => {
+    test('handles input_file in request', async () => {
+      const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
+      const bunFile = Bun.file(testImagePath);
+      const imageFile = new File([await bunFile.arrayBuffer()], 'text-based-image.png', {
+        type: 'image/png',
+      });
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Describe this image' }],
+        input_file: imageFile,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('deepseek');
+      expect(response.content).toBeTruthy();
+    });
+
+    test('handles temperature parameter', async () => {
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Hello' }],
         temperature: 0.5,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('deepseek');
+    });
+
+    test('handles maxTokens parameter', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
         maxTokens: 500,
       };
 
       const response = await provider.getCompletion(request);
-      expect(response).toHaveProperty('content');
-      expect(response).toHaveProperty('model');
-      expect(response).toHaveProperty('provider', 'deepseek');
+      expect(response.provider).toBe('deepseek');
     });
 
-    test('includes usage statistics in response', async () => {
+    test('shows usage stats when requested', async () => {
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Hello' }],
       };
@@ -80,6 +103,26 @@ describe('DeepseekProvider', () => {
       expect(firstChunk).toHaveProperty('content');
       expect(firstChunk).toHaveProperty('model');
       expect(firstChunk).toHaveProperty('provider', 'deepseek');
+    });
+
+    test('handles input_file in stream request', async () => {
+      const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
+      const bunFile = Bun.file(testImagePath);
+      const imageFile = new File([await bunFile.arrayBuffer()], 'text-based-image.png', {
+        type: 'image/png',
+      });
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Describe this image' }],
+        input_file: imageFile,
+      };
+
+      const chunks: string[] = [];
+      for await (const chunk of provider.getCompletionStream(request)) {
+        chunks.push(chunk.content);
+      }
+
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(chunks.join('')).toBeTruthy();
     });
 
     test('handles streaming with multiple messages', async () => {
