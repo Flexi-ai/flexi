@@ -10,6 +10,7 @@ import { AIProvider } from './types/ai-provider';
 import { swaggerUI } from '@hono/swagger-ui';
 import { createProviderRoutes } from './routes/providers';
 import { createCompletionRoutes } from './routes/completion';
+import { createTranscriptionRoutes } from './routes/transcription';
 import swaggerSchema from './swagger.json';
 
 const app = new Hono({ strict: false });
@@ -57,6 +58,7 @@ api.use('/*', basicAuth);
 
 api.route('/providers', createProviderRoutes(providers));
 api.route('/completion', createCompletionRoutes(providers));
+api.route('/transcription', createTranscriptionRoutes(providers));
 
 // Start the server
 const port = process.env.PORT || 3000;

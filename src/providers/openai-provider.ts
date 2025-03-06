@@ -1,5 +1,7 @@
 import { OpenAI } from 'openai';
 import {
+  AIAudioTranscriptionRequest,
+  AIAudioTranscriptionResponse,
   AICompletionRequest,
   AICompletionResponse,
   AIMessage,
@@ -140,6 +142,40 @@ export class OpenAIProvider extends AIProviderBase {
           : undefined,
     };
   }
+  async transcribeAudio(
+    request: AIAudioTranscriptionRequest
+  ): Promise<AIAudioTranscriptionResponse> {
+    if (!request.input_file) {
+      throw new Error('Audio file is required');
+    }
+
+    const model = request.model || 'whisper-1';
+    this.validateModel('audio', model);
+
+    try {
+      // Validate file type and size
+      this.validateAudioFile(request.input_file);
+
+      const transcription = await this.client.audio.transcriptions.create({
+        file: request.input_file,
+        model,
+        response_format: request.response_format || 'text',
+        temperature: request.temperature,
+        prompt: request.prompt,
+      });
+
+      return {
+        transcription: transcription,
+        model: model,
+        provider: this.name,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Audio transcription failed: ${error.message}`);
+      }
+      throw new Error('Audio transcription failed: Unknown error');
+    }
+  }
 
   listAvailableModels(): ModelTypes {
     return {
@@ -156,6 +192,7 @@ export class OpenAIProvider extends AIProviderBase {
         'gpt-4o',
         'gpt-4o-mini',
       ],
+      audio: ['whisper-1'],
     };
   }
 }
