@@ -164,8 +164,7 @@ export class GroqProvider extends AIProviderBase {
         'qwen-2.5-coder-32b',
         'qwen-qwq-32b',
         'whisper-large-v3-turbo',
-        'whisper-large-v3'
-
+        'whisper-large-v3',
       ],
     };
   }
