@@ -1,10 +1,10 @@
 # FlexiAI
 
-FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers, including OpenAI and Anthropic Claude. It's built with TypeScript and uses the Hono framework for a fast and efficient API server.
+FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers, including OpenAI, Anthropic. Claude, Gemini, Deepseek, Perplexity, Groq. It's built with TypeScript and uses the Hono framework for a fast and efficient API server.
 
 ## Features
 
-- Multiple AI provider support (OpenAI, Anthropic Claude)
+- Multiple AI provider support (OpenAI, Anthropic, Claude, Gemini, Deepseek, Perplexity, Groq)
 - RESTful API with Swagger documentation
 - Built with TypeScript for type safety
 - Fast and efficient with Bun runtime

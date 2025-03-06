@@ -4,6 +4,7 @@ import { ClaudeProvider } from './providers/claude-provider';
 import { GeminiProvider } from './providers/gemini-provider';
 import { DeepseekProvider } from './providers/deepseek-provider';
 import { PerplexityProvider } from './providers/perplexity-provider';
+import { GroqProvider } from './providers/groq-provider';
 import { AIProvider } from './types/ai-provider';
 import { swaggerUI } from '@hono/swagger-ui';
 import { createProviderRoutes } from './routes/providers';
@@ -30,6 +31,9 @@ if (process.env.DEEPSEEK_API_KEY) {
 }
 if (process.env.PERPLEXITY_API_KEY) {
   providers.set('perplexity', new PerplexityProvider(process.env.PERPLEXITY_API_KEY));
+}
+if (process.env.GROQ_API_KEY) {
+  providers.set('groq', new GroqProvider(process.env.GROQ_API_KEY));
 }
 
 // Swagger API schema
