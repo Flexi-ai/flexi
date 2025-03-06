@@ -2,45 +2,41 @@
   "name": "flexiai",
   "version": "1.0.0",
   "description": "FlexiAI - A flexible AI solution",
-  "main": "app/index.ts",
+  "main": "src/index.ts",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "bun run --watch app/index.ts",
-    "start": "bun run app/index.ts",
-    "build": "bun build app/index.ts --outdir dist",
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
-    "db:generate": "drizzle-kit generate:pg",
-    "db:migrate": "bun run src/db/migrate.ts",
-    "db:studio": "drizzle-kit studio",
     "format": "prettier --write .",
-    "lint": "eslint . --ext .ts --fix"
+    "lint": "eslint . --ext .ts --fix",
+    "check:all": "bun run typecheck && bun run lint && bun run test && bun run format"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.37.0",
-    "@hono/swagger-ui": "^0.5.0",
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@google/generative-ai": "^0.23.0",
+    "@hono/swagger-ui": "^0.5.1",
     "@hono/zod-validator": "^0.4.3",
-    "drizzle-orm": "^0.40.0",
-    "hono": "^4.7.2",
-    "openai": "^4.85.4",
-    "pg": "^8.13.3",
+    "groq-sdk": "^0.15.0",
+    "hono": "^4.7.4",
+    "openai": "^4.86.2",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/pg": "^8.11.11",
-    "@typescript-eslint/eslint-plugin": "^7.1.0",
-    "@typescript-eslint/parser": "^7.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.26.0",
+    "@typescript-eslint/parser": "^8.26.0",
     "bun-types": "latest",
-    "drizzle-kit": "^0.30.5",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "prettier": "^3.2.5",
-    "typescript": "^5.7.3"
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.2",
+    "eslint-plugin-prettier": "^5.2.3",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
   }
 }

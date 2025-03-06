@@ -1,7 +1,24 @@
 import { expect, test, describe } from 'bun:test';
-import { AIMessage, AICompletionRequest, AICompletionResponse } from '../types/ai-provider';
+import {
+  AIMessage,
+  AICompletionRequest,
+  AICompletionResponse,
+  AIStreamChunk,
+} from '../types/ai-provider';
 
 describe('AI Provider Types', () => {
+  test('AIStreamChunk structure', () => {
+    const chunk: AIStreamChunk = {
+      content: 'Test chunk',
+      model: 'test-model',
+      provider: 'test-provider',
+    };
+
+    expect(chunk.content).toBe('Test chunk');
+    expect(chunk.model).toBe('test-model');
+    expect(chunk.provider).toBe('test-provider');
+  });
+
   test('AIMessage structure', () => {
     const message: AIMessage = {
       role: 'user',

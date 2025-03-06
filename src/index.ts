@@ -1,94 +1,62 @@
 import { Hono } from 'hono';
+import { basicAuth } from './middleware/auth';
 import { OpenAIProvider } from './providers/openai-provider';
 import { ClaudeProvider } from './providers/claude-provider';
-import { AIProvider, AICompletionRequest } from './types/ai-provider';
+import { GeminiProvider } from './providers/gemini-provider';
+import { DeepseekProvider } from './providers/deepseek-provider';
+import { PerplexityProvider } from './providers/perplexity-provider';
+import { GroqProvider } from './providers/groq-provider';
+import { AIProvider } from './types/ai-provider';
 import { swaggerUI } from '@hono/swagger-ui';
-import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
+import { createProviderRoutes } from './routes/providers';
+import { createCompletionRoutes } from './routes/completion';
+import swaggerSchema from './swagger.json';
 
 const app = new Hono({ strict: false });
 
 // Initialize providers map
 const providers = new Map<string, AIProvider>();
 
-// Add providers if API keys are present
-if (process.env.OPENAI_API_KEY) {
-  providers.set('openai', new OpenAIProvider(process.env.OPENAI_API_KEY));
-}
-if (process.env.ANTHROPIC_API_KEY) {
-  providers.set('claude', new ClaudeProvider(process.env.ANTHROPIC_API_KEY));
-}
+// Provider configuration
+const providerConfig = [
+  { name: 'openai', Provider: OpenAIProvider, envKey: 'OPENAI_API_KEY' },
+  { name: 'claude', Provider: ClaudeProvider, envKey: 'ANTHROPIC_API_KEY' },
+  { name: 'gemini', Provider: GeminiProvider, envKey: 'GEMINI_API_KEY' },
+  { name: 'deepseek', Provider: DeepseekProvider, envKey: 'DEEPSEEK_API_KEY' },
+  { name: 'perplexity', Provider: PerplexityProvider, envKey: 'PERPLEXITY_API_KEY' },
+  { name: 'groq', Provider: GroqProvider, envKey: 'GROQ_API_KEY' },
+];
+
+// Register providers with available API keys
+providerConfig.forEach(({ name, Provider, envKey }) => {
+  const apiKey = process.env[envKey];
+  if (apiKey) {
+    providers.set(name, new Provider(apiKey));
+  }
+});
+
+// Swagger API schema
+app.get('/api/swagger.json', basicAuth, c => {
+  return c.json(swaggerSchema);
+});
 
 // Swagger documentation
 app.get(
   '/swagger',
+  basicAuth,
   swaggerUI({
     url: '/api/swagger.json',
   })
 );
 
 // API routes
-const api = new Hono().basePath('/api');
-app.route('/', api);
+const api = app.basePath('/api');
 
-// List available providers
-api.get('/providers', c => {
-  return c.json({
-    providers: Array.from(providers.keys()),
-  });
-});
+// Apply authentication to all API routes
+api.use('/*', basicAuth);
 
-// Get available models for a provider
-api.get('/providers/:provider/models', async c => {
-  const providerName = c.req.param('provider');
-  const provider = providers.get(providerName);
-
-  if (!provider) {
-    return c.json({ error: 'Provider not found' }, 404);
-  }
-
-  const models = await provider.listAvailableModels();
-  return c.json({ models });
-});
-
-// Completion endpoint schema
-const completionSchema = z.object({
-  provider: z.string(),
-  messages: z.array(
-    z.object({
-      role: z.enum(['user', 'assistant', 'system']),
-      content: z.string(),
-    })
-  ),
-  temperature: z.number().min(0).max(1).optional(),
-  maxTokens: z.number().positive().optional(),
-  model: z.string().optional(),
-});
-
-// Create completion
-api.post('/completion', zValidator('json', completionSchema), async c => {
-  const body = c.req.valid('json');
-  const provider = providers.get(body.provider);
-
-  if (!provider) {
-    return c.json({ error: 'Provider not found' }, 404);
-  }
-
-  try {
-    const request: AICompletionRequest = {
-      messages: body.messages,
-      temperature: body.temperature,
-      maxTokens: body.maxTokens,
-      model: body.model,
-    };
-
-    const response = await provider.getCompletion(request);
-    return c.json(response);
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return c.json({ error: errorMessage }, 500);
-  }
-});
+api.route('/providers', createProviderRoutes(providers));
+api.route('/completion', createCompletionRoutes(providers));
 
 // Start the server
 const port = process.env.PORT || 3000;

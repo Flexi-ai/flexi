@@ -1,3 +1,20 @@
+export type ModelTypes = {
+  text: string[];
+};
+
+export interface AIMessageContent {
+  type: 'text' | 'image_url' | 'image';
+  content?: string;
+  image_url?: {
+    data: string;
+  };
+  source?: {
+    type: string;
+    media_type: string;
+    data: string;
+  };
+}
+
 export interface AIMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -8,6 +25,9 @@ export interface AICompletionRequest {
   temperature?: number;
   maxTokens?: number;
   model?: string;
+  stream?: boolean;
+  show_stats?: boolean;
+  input_file?: File;
 }
 
 export interface AICompletionResponse {
@@ -21,8 +41,21 @@ export interface AICompletionResponse {
   };
 }
 
+export interface AIStreamChunk {
+  content: string;
+  model?: string;
+  provider?: string;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
+  error?: string;
+}
+
 export interface AIProvider {
   name: string;
   getCompletion(request: AICompletionRequest): Promise<AICompletionResponse>;
-  listAvailableModels(): Promise<string[]>;
+  getCompletionStream?(request: AICompletionRequest): AsyncGenerator<AIStreamChunk>;
+  listAvailableModels(): ModelTypes;
 }

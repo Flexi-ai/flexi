@@ -1,4 +1,5 @@
-import { OpenAI } from 'openai';
+import Groq from 'groq-sdk';
+
 import {
   AICompletionRequest,
   AICompletionResponse,
@@ -18,17 +19,17 @@ type AIImageMessage = {
   }[];
 };
 
-export class OpenAIProvider extends AIProviderBase {
-  private client: OpenAI;
-  name = 'openai';
+export class GroqProvider extends AIProviderBase {
+  private client: Groq;
+  name = 'groq';
 
   constructor(apiKey: string) {
     super();
-    this.client = new OpenAI({ apiKey });
+    this.client = new Groq({ apiKey });
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
-    const model = request.model || 'gpt-3.5-turbo';
+    const model = request.model || 'llama3-8b-8192';
     this.validateModel('text', model);
 
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
@@ -60,7 +61,7 @@ export class OpenAIProvider extends AIProviderBase {
           };
         }
         return {
-          role: msg.role === 'assistant' ? 'assistant' : msg.role,
+          role: msg.role === 'assistant' ? 'assistant' : 'user',
           content: (msg as AIMessage).content,
         };
       }),
@@ -86,7 +87,7 @@ export class OpenAIProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
 
-    const model = request.model || 'gpt-3.5-turbo';
+    const model = request.model || 'llama3-8b-8192';
     this.validateModel('text', model);
 
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
@@ -144,17 +145,26 @@ export class OpenAIProvider extends AIProviderBase {
   listAvailableModels(): ModelTypes {
     return {
       text: [
-        'o1',
-        'o1-mini',
-        'o3-mini',
-        'chatgpt-4o-latest',
-        'gpt-3.5-turbo-instruct',
-        'gpt-3.5-turbo',
-        'gpt-3.5-turbo-16k',
-        'gpt-4-turbo',
-        'gpt-4',
-        'gpt-4o',
-        'gpt-4o-mini',
+        'deepseek-r1-distill-llama-70b',
+        'deepseek-r1-distill-qwen-32b',
+        'gemma2-9b-it',
+        'llama-3.1-8b-instant',
+        'llama-3.2-1b-preview',
+        'llama-3.2-11b-vision-preview',
+        'llama-3.2-3b-preview',
+        'llama-3.2-90b-vision-preview',
+        'llama-3.3-70b-specdec',
+        'llama-3.3-70b-versatile',
+        'llama-guard-3-8b',
+        'llama3-70b-8192',
+        'llama3-8b-8192',
+        'mistral-saba-24b',
+        'mixtral-8x7b-32768',
+        'qwen-2.5-32b',
+        'qwen-2.5-coder-32b',
+        'qwen-qwq-32b',
+        'whisper-large-v3-turbo',
+        'whisper-large-v3',
       ],
     };
   }
