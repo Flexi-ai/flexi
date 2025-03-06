@@ -39,6 +39,28 @@ cp .env.example .env
 
 Edit the `.env` file and add your API keys for the AI providers you want to use.
 
+### Environment Variables Configuration
+
+The following environment variables can be configured in your `.env` file:
+
+#### Server Configuration
+
+- `PORT`: The port number for the server (default: 3000)
+
+#### Authentication
+
+- `API_USERNAME`: Username for API authentication
+- `API_PASSWORD`: Password for API authentication
+
+#### AI Provider API Keys
+
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `ANTHROPIC_API_KEY`: Your Anthropic API key
+- `GEMINI_API_KEY`: Your Google Gemini API key
+- `DEEPSEEK_API_KEY`: Your Deepseek API key
+- `PERPLEXITY_API_KEY`: Your Perplexity API key
+- `GROQ_API_KEY`: Your Groq API key
+
 ## Development
 
 To start the development server with hot reload:
@@ -63,6 +85,11 @@ Once the server is running, you can access the Swagger UI documentation at:
 ```
 http://localhost:3000/swagger
 ```
+
+Detailed API documentation is available in the `docs` folder:
+
+- [Provider API Documentation](docs/provider.md) - Endpoints for managing and interacting with AI providers
+- [Text Completion API Documentation](docs/text-provider.md) - Endpoints for text completion and chat functionality
 
 ## Contributing
 
