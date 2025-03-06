@@ -32,8 +32,8 @@ GET /api/providers/{provider}/models
 
 #### Path Parameters
 
-| Parameter | Type   | Required | Description |
-|-----------|--------|----------|-------------|
+| Parameter | Type   | Required | Description                 |
+| --------- | ------ | -------- | --------------------------- |
 | provider  | string | Yes      | The name of the AI provider |
 
 ### Response

@@ -23,7 +23,9 @@ export async function basicAuth(c: Context, next: Next) {
     return c.text('Unauthorized', 401);
   }
 
-  const [providedUsername, providedPassword] = atob(credentials).split(':');
+  const [providedUsername, providedPassword] = Buffer.from(credentials, 'base64')
+    .toString()
+    .split(':');
 
   if (providedUsername !== username || providedPassword !== password) {
     c.header('WWW-Authenticate', 'Basic');
