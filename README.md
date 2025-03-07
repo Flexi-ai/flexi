@@ -43,23 +43,19 @@ Edit the `.env` file and add your API keys for the AI providers you want to use.
 
 The following environment variables can be configured in your `.env` file:
 
-#### Server Configuration
-
-- `PORT`: The port number for the server (default: 3000)
-
-#### Authentication
-
-- `API_USERNAME`: Username for API authentication
-- `API_PASSWORD`: Password for API authentication
-
-#### AI Provider API Keys
-
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `ANTHROPIC_API_KEY`: Your Anthropic API key
-- `GEMINI_API_KEY`: Your Google Gemini API key
-- `DEEPSEEK_API_KEY`: Your Deepseek API key
-- `PERPLEXITY_API_KEY`: Your Perplexity API key
-- `GROQ_API_KEY`: Your Groq API key
+| Variable             | Description                             | Default Value | Available Options                 |
+| -------------------- | --------------------------------------- | ------------- | --------------------------------- |
+| `PORT`               | The port number for the server          | 3000          | Any valid port number             |
+| `API_USERNAME`       | Username for API authentication         | -             | Any string                        |
+| `API_PASSWORD`       | Password for API authentication         | -             | Any string                        |
+| `LOG_LEVEL`          | Controls the verbosity of logging       | info          | error, warn, info, debug, verbose |
+| `LOGGING_ENABLED`    | Enable/disable request/response logging | true          | true, false                       |
+| `OPENAI_API_KEY`     | Your OpenAI API key                     | -             | Valid API key                     |
+| `ANTHROPIC_API_KEY`  | Your Anthropic API key                  | -             | Valid API key                     |
+| `GEMINI_API_KEY`     | Your Google Gemini API key              | -             | Valid API key                     |
+| `DEEPSEEK_API_KEY`   | Your Deepseek API key                   | -             | Valid API key                     |
+| `PERPLEXITY_API_KEY` | Your Perplexity API key                 | -             | Valid API key                     |
+| `GROQ_API_KEY`       | Your Groq API key                       | -             | Valid API key                     |
 
 ## Development
 
