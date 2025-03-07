@@ -90,6 +90,7 @@ Detailed API documentation is available in the `docs` folder:
 
 - [Provider API Documentation](docs/provider.md) - Endpoints for managing and interacting with AI providers
 - [Text Completion API Documentation](docs/text-provider.md) - Endpoints for text completion and chat functionality
+- [Audio Transcription API Documentation](docs/audio-provider.md) - Endpoints for audio transcription functionality
 
 ## Contributing
 

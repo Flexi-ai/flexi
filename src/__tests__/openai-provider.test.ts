@@ -177,24 +177,28 @@ describe('OpenAIProvider', () => {
   });
 
   describe('transcribeAudio', () => {
-    test('successfully transcribes audio file', async () => {
-      const audioPath = new URL('./data-sources/sample-audio.mp3', import.meta.url);
-      const bunFile = Bun.file(audioPath);
-      const audioFile = new File([await bunFile.arrayBuffer()], 'sample-audio.mp3', {
-        type: 'audio/mpeg',
-      });
-      const request = {
-        input_file: audioFile,
-        model: 'whisper-1',
-        response_format: 'text' as 'text' | 'json' | 'srt',
-        temperature: 0.7,
-      };
+    (hasOpenAIKey ? test : test.skip)(
+      'successfully transcribes audio file',
+      async () => {
+        const audioPath = new URL('./data-sources/sample-audio.mp3', import.meta.url);
+        const bunFile = Bun.file(audioPath);
+        const audioFile = new File([await bunFile.arrayBuffer()], 'sample-audio.mp3', {
+          type: 'audio/mpeg',
+        });
+        const request = {
+          input_file: audioFile,
+          model: 'whisper-1',
+          response_format: 'text' as 'text' | 'json' | 'srt',
+          temperature: 0.7,
+        };
 
-      const response = await provider.transcribeAudio(request);
-      expect(response.provider).toBe('openai');
-      expect(response.model).toBe('whisper-1');
-      expect(typeof response.transcription).toBe('string');
-    }, 20000);
+        const response = await provider.transcribeAudio(request);
+        expect(response.provider).toBe('openai');
+        expect(response.model).toBe('whisper-1');
+        expect(typeof response.transcription).toBe('string');
+      },
+      20000
+    );
 
     test('rejects text files', async () => {
       const testTxtPath = new URL('./data-sources/test.txt', import.meta.url);
