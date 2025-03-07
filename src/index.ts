@@ -69,7 +69,6 @@ providerConfig.forEach(({ name, Provider, envKey }) => {
   const apiKey = process.env[envKey];
   if (apiKey) {
     providers.set(name, new Provider(apiKey));
-    // Logger.info(`Provider registered: ${name}`);
   }
 });
 
@@ -103,8 +102,6 @@ const port = process.env.PORT || 3000;
 Logger.info(`Server starting...`, {
   port,
   environment: process.env.NODE_ENV || 'development',
-  logLevel: process.env.LOG_LEVEL || 'info',
-  // providers: Array.from(providers.keys()),
 });
 
 export default {
