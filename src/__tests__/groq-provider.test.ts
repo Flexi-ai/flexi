@@ -1,5 +1,5 @@
 import { expect, test, describe, beforeEach } from 'bun:test';
-import { GroqProvider } from '../providers/groq-provider';
+import { GroqAIAudioTranscriptionRequest, GroqProvider } from '../providers/groq-provider';
 import { AICompletionRequest } from '../types/ai-provider';
 
 const hasGroqKey = !!process.env.GROQ_API_KEY;
@@ -174,5 +174,70 @@ describe('GroqProvider', () => {
     await expect(provider.getCompletion(request)).rejects.toThrow(
       'Invalid model used. Use /provider/models api to know which models are supported'
     );
+  });
+
+  describe('transcribeAudio', () => {
+    (hasGroqKey ? test : test.skip)(
+      'successfully transcribes audio file',
+      async () => {
+        const audioPath = new URL('./data-sources/sample-audio.mp3', import.meta.url);
+        const bunFile = Bun.file(audioPath);
+        const audioFile = new File([await bunFile.arrayBuffer()], 'sample-audio.mp3', {
+          type: 'audio/mpeg',
+        });
+        const request = {
+          input_file: audioFile,
+          model: 'distil-whisper-large-v3-en',
+          response_format: 'text' as 'text' | 'json' | 'verbose_json',
+          temperature: 0.7,
+        };
+
+        const response = await provider.transcribeAudio(request);
+        expect(response.provider).toBe('groq');
+        expect(response.model).toBe('distil-whisper-large-v3-en');
+        expect(typeof response.transcription).toBe('string');
+      },
+      20000
+    );
+
+    test('rejects text files', async () => {
+      const testTxtPath = new URL('./data-sources/test.txt', import.meta.url);
+      const bunFile = Bun.file(testTxtPath);
+      const txtFile = new File([await bunFile.arrayBuffer()], 'test.txt', {
+        type: 'text/plain',
+      });
+      const request = {
+        input_file: txtFile,
+      };
+
+      await expect(provider.transcribeAudio(request)).rejects.toThrow(
+        'Audio transcription failed: Invalid audio format. Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, webm'
+      );
+    });
+
+    test('throws error when input_file is missing', async () => {
+      const request: GroqAIAudioTranscriptionRequest = {
+        input_file: undefined as unknown as File,
+        model: 'distil-whisper-large-v3-en',
+      };
+
+      await expect(provider.transcribeAudio(request)).rejects.toThrow('Audio file is required');
+    });
+
+    test('validates model type', async () => {
+      const audioPath = new URL('./data-sources/sample-audio.mp3', import.meta.url);
+      const bunFile = Bun.file(audioPath);
+      const audioFile = new File([await bunFile.arrayBuffer()], 'sample-audio.mp3', {
+        type: 'audio/mpeg',
+      });
+      const request = {
+        input_file: audioFile,
+        model: 'llama3-8b-8192', // Using a text model instead of audio model
+      };
+
+      await expect(provider.transcribeAudio(request)).rejects.toThrow(
+        'Invalid model used. Use /provider/models api to know which models are supported'
+      );
+    });
   });
 });

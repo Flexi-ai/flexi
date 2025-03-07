@@ -1,6 +1,6 @@
 import Groq from 'groq-sdk';
-
 import {
+  AIAudioTranscriptionResponse,
   AICompletionRequest,
   AICompletionResponse,
   AIMessage,
@@ -18,6 +18,13 @@ type AIImageMessage = {
     };
   }[];
 };
+export interface GroqAIAudioTranscriptionRequest {
+  input_file: File;
+  model?: string;
+  response_format?: 'json' | 'text' | 'verbose_json' | undefined;
+  temperature?: number;
+  prompt?: string;
+}
 
 export class GroqProvider extends AIProviderBase {
   private client: Groq;
@@ -142,6 +149,41 @@ export class GroqProvider extends AIProviderBase {
     };
   }
 
+  async transcribeAudio(
+    request: GroqAIAudioTranscriptionRequest
+  ): Promise<AIAudioTranscriptionResponse> {
+    if (!request.input_file) {
+      throw new Error('Audio file is required');
+    }
+
+    const model = request.model || 'distil-whisper-large-v3-en';
+    this.validateModel('audio', model);
+
+    try {
+      // Validate file type and size
+      this.validateAudioFile(request.input_file);
+
+      const transcription = await this.client.audio.transcriptions.create({
+        file: request.input_file,
+        model,
+        response_format: request.response_format || 'text',
+        temperature: request.temperature,
+        prompt: request.prompt,
+      });
+
+      return {
+        transcription: transcription,
+        model: model,
+        provider: this.name,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Audio transcription failed: ${error.message}`);
+      }
+      throw new Error('Audio transcription failed: Unknown error');
+    }
+  }
+
   listAvailableModels(): ModelTypes {
     return {
       text: [
@@ -163,9 +205,8 @@ export class GroqProvider extends AIProviderBase {
         'qwen-2.5-32b',
         'qwen-2.5-coder-32b',
         'qwen-qwq-32b',
-        'whisper-large-v3-turbo',
-        'whisper-large-v3',
       ],
+      audio: ['distil-whisper-large-v3-en', 'whisper-large-v3-turbo', 'whisper-large-v3	'],
     };
   }
 }

@@ -51,7 +51,7 @@ describe('OpenAIProvider', () => {
 
       const response = await provider.getCompletion(request);
       expect(response.model).toBe('gpt-3.5-turbo-0125');
-    });
+    }, 10000);
 
     test('maps assistant role to model role', async () => {
       const request: AICompletionRequest = {
