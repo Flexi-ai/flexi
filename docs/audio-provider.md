@@ -34,7 +34,7 @@ Example request parameters:
 | --------------- | ------ | -------- | ------------------------------------------------- |
 | input_file      | File   | Yes      | Audio file to transcribe                          |
 | model           | string | No       | Specific model to use (defaults to 'whisper-1')   |
-| response_format | string | No       | Format of the response ('text', 'json', or 'srt') |
+| response_format | string | No       | Format of the response ('text') |
 | temperature     | number | No       | Controls randomness (0-1)                         |
 | prompt          | string | No       | Optional prompt to guide the transcription        |
 

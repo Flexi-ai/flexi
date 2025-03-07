@@ -57,7 +57,7 @@ export interface AIStreamChunk {
 export interface AIAudioTranscriptionRequest {
   input_file: File;
   model?: string;
-  response_format?: 'json' | 'text' | 'srt';
+  response_format?: 'text';
   temperature?: number;
   prompt?: string;
 }

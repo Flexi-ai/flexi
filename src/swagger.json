@@ -52,7 +52,7 @@
                       "oneOf": [
                         {
                           "type": "string",
-                          "description": "Transcribed text in plain text or SRT format"
+                          "description": "Transcribed text in plain text format"
                         },
                         {
                           "type": "object",
@@ -65,7 +65,7 @@
                           "required": ["text"]
                         }
                       ],
-                      "description": "Transcription result in the requested format (text, json, or srt)"
+                      "description": "Transcription result in the requested format (text)"
                     },
                     "model": {
                       "type": "string",
