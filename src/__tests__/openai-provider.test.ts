@@ -51,7 +51,7 @@ describe('OpenAIProvider', () => {
 
       const response = await provider.getCompletion(request);
       expect(response.model).toBe('gpt-3.5-turbo-0125');
-    }, 10000);
+    });
 
     test('maps assistant role to model role', async () => {
       const request: AICompletionRequest = {
@@ -188,7 +188,7 @@ describe('OpenAIProvider', () => {
         const request = {
           input_file: audioFile,
           model: 'whisper-1',
-          response_format: 'text' as 'text' | 'json' | 'srt',
+          response_format: 'text' as 'text',
           temperature: 0.7,
         };
 

@@ -1,6 +1,6 @@
 import { expect, test, describe, beforeEach } from 'bun:test';
-import { GroqAIAudioTranscriptionRequest, GroqProvider } from '../providers/groq-provider';
-import { AICompletionRequest } from '../types/ai-provider';
+import { GroqProvider } from '../providers/groq-provider';
+import { AIAudioTranscriptionRequest, AICompletionRequest } from '../types/ai-provider';
 
 const hasGroqKey = !!process.env.GROQ_API_KEY;
 
@@ -188,7 +188,7 @@ describe('GroqProvider', () => {
         const request = {
           input_file: audioFile,
           model: 'distil-whisper-large-v3-en',
-          response_format: 'text' as 'text' | 'json' | 'verbose_json',
+          response_format: 'text' as 'text',
           temperature: 0.7,
         };
 
@@ -216,7 +216,7 @@ describe('GroqProvider', () => {
     });
 
     test('throws error when input_file is missing', async () => {
-      const request: GroqAIAudioTranscriptionRequest = {
+      const request: AIAudioTranscriptionRequest = {
         input_file: undefined as unknown as File,
         model: 'distil-whisper-large-v3-en',
       };

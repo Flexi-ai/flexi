@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk';
 import {
+  AIAudioTranscriptionRequest,
   AIAudioTranscriptionResponse,
   AICompletionRequest,
   AICompletionResponse,
@@ -18,13 +19,6 @@ type AIImageMessage = {
     };
   }[];
 };
-export interface GroqAIAudioTranscriptionRequest {
-  input_file: File;
-  model?: string;
-  response_format?: 'json' | 'text' | 'verbose_json' | undefined;
-  temperature?: number;
-  prompt?: string;
-}
 
 export class GroqProvider extends AIProviderBase {
   private client: Groq;
@@ -150,7 +144,7 @@ export class GroqProvider extends AIProviderBase {
   }
 
   async transcribeAudio(
-    request: GroqAIAudioTranscriptionRequest
+    request: AIAudioTranscriptionRequest
   ): Promise<AIAudioTranscriptionResponse> {
     if (!request.input_file) {
       throw new Error('Audio file is required');
