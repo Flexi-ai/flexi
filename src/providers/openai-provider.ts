@@ -33,7 +33,7 @@ export class OpenAIProvider extends AIProviderBase {
     const model = request.model || 'gpt-3.5-turbo';
     this.validateModel('text', model);
 
-    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+    let updatedMessages: (AIMessage)[] = request.messages;
 
     if (request.input_file) {
       this.validateImageFile(request.input_file);
