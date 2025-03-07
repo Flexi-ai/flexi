@@ -12,7 +12,7 @@ export abstract class AIProviderBase implements AIProvider {
 
   protected validateModel(type: string, model: string) {
     const availableModels = this.listAvailableModels()[type as keyof ModelTypes];
-    if (!availableModels.includes(model)) {
+    if (!availableModels?.includes(model)) {
       throw new Error(
         'Invalid model used. Use /provider/models api to know which models are supported'
       );
@@ -42,6 +42,19 @@ export abstract class AIProviderBase implements AIProvider {
     }
     if (!imageTypes.includes(file.type)) {
       throw new Error('Only supports image files (PNG, JPEG, and WEBP)');
+    }
+  }
+
+  protected validateAudioFile(file: File): void {
+    const validAudioFormats = ['mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm'];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+
+    if (!fileExtension || !validAudioFormats.includes(fileExtension)) {
+      throw new Error(`Invalid audio format. Supported formats: ${validAudioFormats.join(', ')}`);
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      throw new Error('Audio file size exceeds 25MB limit');
     }
   }
 }

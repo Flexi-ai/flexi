@@ -1,5 +1,6 @@
 export type ModelTypes = {
   text: string[];
+  audio?: string[];
 };
 
 export interface AIMessageContent {
@@ -53,9 +54,24 @@ export interface AIStreamChunk {
   error?: string;
 }
 
+export interface AIAudioTranscriptionRequest {
+  input_file: File;
+  model?: string;
+  response_format?: 'json' | 'text' | 'srt';
+  temperature?: number;
+  prompt?: string;
+}
+
+export interface AIAudioTranscriptionResponse {
+  transcription: string | { text: string };
+  model: string;
+  provider: string;
+}
+
 export interface AIProvider {
   name: string;
   getCompletion(request: AICompletionRequest): Promise<AICompletionResponse>;
   getCompletionStream?(request: AICompletionRequest): AsyncGenerator<AIStreamChunk>;
+  transcribeAudio?(request: AIAudioTranscriptionRequest): Promise<AIAudioTranscriptionResponse>;
   listAvailableModels(): ModelTypes;
 }
