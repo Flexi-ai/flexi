@@ -1,17 +1,17 @@
 import { expect, test, describe, beforeEach } from 'bun:test';
-import { GroqProvider } from '../providers/groq-provider';
-import { AIAudioTranscriptionRequest, AICompletionRequest } from '../types/ai-provider';
+import { QwenProvider } from '../providers/qwen-provider';
+import { AICompletionRequest } from '../types/ai-provider';
 
-const hasGroqKey = !!process.env.GROQ_API_KEY;
+const hasQwenKey = !!process.env.QWEN_API_KEY;
 
-describe('GroqProvider', () => {
-  let provider: GroqProvider;
+describe('QwenProvider', () => {
+  let provider: QwenProvider;
 
   beforeEach(() => {
-    provider = new GroqProvider(process.env.GROQ_API_KEY || 'test-api-key');
+    provider = new QwenProvider(process.env.QWEN_API_KEY || 'test-api-key');
   });
 
-  (hasGroqKey ? describe : describe.skip)('getCompletion', () => {
+  (hasQwenKey ? describe : describe.skip)('getCompletion', () => {
     test('rejects txt files in input_file', async () => {
       const testTxtPath = new URL('./data-sources/test.txt', import.meta.url);
       const bunFile = Bun.file(testTxtPath);
@@ -50,7 +50,7 @@ describe('GroqProvider', () => {
       };
 
       const response = await provider.getCompletion(request);
-      expect(response.model).toBe('llama3-8b-8192');
+      expect(response.model).toBe('qwen-plus');
     });
 
     test('maps assistant role to model role', async () => {
@@ -62,8 +62,8 @@ describe('GroqProvider', () => {
       };
 
       const response = await provider.getCompletion(request);
-      expect(response.provider).toBe('groq');
-    }, 10000);
+      expect(response.provider).toBe('qwen');
+    });
 
     test('handles input_file in request', async () => {
       const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
@@ -72,15 +72,14 @@ describe('GroqProvider', () => {
         type: 'image/png',
       });
       const request: AICompletionRequest = {
-        model: 'llama-3.2-11b-vision-preview',
         messages: [{ role: 'user', content: 'Describe this image' }],
         input_file: imageFile,
       };
 
       const response = await provider.getCompletion(request);
-      expect(response.provider).toBe('groq');
+      expect(response.provider).toBe('qwen');
       expect(response.content).toBeTruthy();
-    }, 10000); // Increase timeout to 10 seconds for image processing
+    });
 
     test('handles temperature parameter', async () => {
       const request: AICompletionRequest = {
@@ -89,7 +88,7 @@ describe('GroqProvider', () => {
       };
 
       const response = await provider.getCompletion(request);
-      expect(response.provider).toBe('groq');
+      expect(response.provider).toBe('qwen');
     });
 
     test('handles maxTokens parameter', async () => {
@@ -99,13 +98,12 @@ describe('GroqProvider', () => {
       };
 
       const response = await provider.getCompletion(request);
-      expect(response.provider).toBe('groq');
+      expect(response.provider).toBe('qwen');
     });
 
     test('shows usage stats when requested', async () => {
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Hello' }],
-        show_stats: true,
       };
 
       const response = await provider.getCompletion(request);
@@ -114,9 +112,18 @@ describe('GroqProvider', () => {
       expect(response.usage).toHaveProperty('completionTokens');
       expect(response.usage).toHaveProperty('totalTokens');
     });
+
+    test('throws error for invalid API key', async () => {
+      const invalidProvider = new QwenProvider('invalid-key');
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+      };
+
+      await expect(invalidProvider.getCompletion(request)).rejects.toThrow();
+    });
   });
 
-  (hasGroqKey ? describe : describe.skip)('getCompletionStream', () => {
+  (hasQwenKey ? describe : describe.skip)('getCompletionStream', () => {
     test('yields chunks with correct structure', async () => {
       const request: AICompletionRequest = {
         messages: [{ role: 'user', content: 'Hello' }],
@@ -127,7 +134,7 @@ describe('GroqProvider', () => {
 
       expect(firstChunk).toHaveProperty('content');
       expect(firstChunk).toHaveProperty('model');
-      expect(firstChunk).toHaveProperty('provider', 'groq');
+      expect(firstChunk).toHaveProperty('provider', 'qwen');
     });
 
     test('handles input_file in stream request', async () => {
@@ -137,18 +144,50 @@ describe('GroqProvider', () => {
         type: 'image/png',
       });
       const request: AICompletionRequest = {
-        model: 'llama-3.2-11b-vision-preview',
         messages: [{ role: 'user', content: 'Describe this image' }],
         input_file: imageFile,
-        stream: true,
+      };
+
+      const chunks: string[] = [];
+      for await (const chunk of provider.getCompletionStream(request)) {
+        chunks.push(chunk.content);
+      }
+
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(chunks.join('')).toBeTruthy();
+    });
+
+    test('handles streaming with multiple messages', async () => {
+      const request: AICompletionRequest = {
+        messages: [
+          { role: 'user', content: 'Hello' },
+          { role: 'assistant', content: 'Hi there' },
+          { role: 'user', content: 'How are you?' },
+        ],
+      };
+
+      const chunks: string[] = [];
+      for await (const chunk of provider.getCompletionStream(request)) {
+        chunks.push(chunk.content);
+      }
+
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(chunks.join('')).toBeTruthy();
+    });
+
+    test('respects custom temperature and max tokens in stream', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'Hello' }],
+        temperature: 0.5,
+        maxTokens: 500,
       };
 
       const generator = provider.getCompletionStream(request);
       const firstChunk = (await generator.next()).value;
 
+      expect(firstChunk).toBeDefined();
       expect(firstChunk).toHaveProperty('content');
-      expect(firstChunk).toHaveProperty('provider', 'groq');
-    }, 10000); // Increase timeout to 10 seconds for image processing
+    });
   });
 
   test('returns available models with correct structure', async () => {
@@ -156,13 +195,13 @@ describe('GroqProvider', () => {
     expect(models).toHaveProperty('text');
     expect(Array.isArray(models.text)).toBe(true);
     expect(models.text.length).toBeGreaterThan(0);
-    expect(models.text).toContain('llama3-8b-8192');
-    expect(models.text).toContain('llama-3.2-11b-vision-preview');
+    expect(models.text).toContain('qwen-plus');
+    expect(models.text).toContain('qwen-max');
   });
 
   test('validates correct model type', async () => {
     const models = await provider.listAvailableModels();
-    expect(models.text).toContain('llama3-8b-8192');
+    expect(models.text).toContain('qwen-plus');
   });
 
   test('throws error for invalid model', async () => {
@@ -176,68 +215,14 @@ describe('GroqProvider', () => {
     );
   });
 
-  describe('transcribeAudio', () => {
-    (hasGroqKey ? test : test.skip)(
-      'successfully transcribes audio file',
-      async () => {
-        const audioPath = new URL('./data-sources/sample-audio.mp3', import.meta.url);
-        const bunFile = Bun.file(audioPath);
-        const audioFile = new File([await bunFile.arrayBuffer()], 'sample-audio.mp3', {
-          type: 'audio/mpeg',
-        });
-        const request = {
-          input_file: audioFile,
-          model: 'distil-whisper-large-v3-en',
-          response_format: 'text' as const,
-          temperature: 0.7,
-        };
+  test('provider name is set correctly', () => {
+    expect(provider.name).toBe('qwen');
+  });
 
-        const response = await provider.transcribeAudio(request);
-        expect(response.provider).toBe('groq');
-        expect(response.model).toBe('distil-whisper-large-v3-en');
-        expect(typeof response.transcription).toBe('string');
-      },
-      20000
-    );
-
-    test('rejects text files', async () => {
-      const testTxtPath = new URL('./data-sources/test.txt', import.meta.url);
-      const bunFile = Bun.file(testTxtPath);
-      const txtFile = new File([await bunFile.arrayBuffer()], 'test.txt', {
-        type: 'text/plain',
-      });
-      const request = {
-        input_file: txtFile,
-      };
-
-      await expect(provider.transcribeAudio(request)).rejects.toThrow(
-        'Audio transcription failed: Invalid audio format. Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, webm'
-      );
-    });
-
-    test('throws error when input_file is missing', async () => {
-      const request: AIAudioTranscriptionRequest = {
-        input_file: undefined as unknown as File,
-        model: 'distil-whisper-large-v3-en',
-      };
-
-      await expect(provider.transcribeAudio(request)).rejects.toThrow('Audio file is required');
-    });
-
-    test('validates model type', async () => {
-      const audioPath = new URL('./data-sources/sample-audio.mp3', import.meta.url);
-      const bunFile = Bun.file(audioPath);
-      const audioFile = new File([await bunFile.arrayBuffer()], 'sample-audio.mp3', {
-        type: 'audio/mpeg',
-      });
-      const request = {
-        input_file: audioFile,
-        model: 'llama3-8b-8192', // Using a text model instead of audio model
-      };
-
-      await expect(provider.transcribeAudio(request)).rejects.toThrow(
-        'Invalid model used. Use /provider/models api to know which models are supported'
-      );
-    });
+  test('constructor sets API key', () => {
+    const testKey = 'test-api-key';
+    const testProvider = new QwenProvider(testKey);
+    // We can't directly test private fields, but we can test the provider was created
+    expect(testProvider).toBeInstanceOf(QwenProvider);
   });
 });

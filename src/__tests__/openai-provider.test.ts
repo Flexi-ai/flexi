@@ -188,7 +188,7 @@ describe('OpenAIProvider', () => {
         const request = {
           input_file: audioFile,
           model: 'whisper-1',
-          response_format: 'text' as 'text',
+          response_format: 'text' as const,
           temperature: 0.7,
         };
 

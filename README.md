@@ -1,10 +1,10 @@
 # FlexiAI
 
-FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers, including OpenAI, Anthropic. Claude, Gemini, Deepseek, Perplexity, Groq. It's built with TypeScript and uses the Hono framework for a fast and efficient API server.
+FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers, including OpenAI, Anthropic. Claude, Gemini, Deepseek, Perplexity, Groq, Qwen. It's built with TypeScript and uses the Hono framework for a fast and efficient API server.
 
 ## Features
 
-- Multiple AI provider support (OpenAI, Anthropic, Claude, Gemini, Deepseek, Perplexity, Groq)
+- Multiple AI provider support (OpenAI, Anthropic, Claude, Gemini, Deepseek, Perplexity, Groq, Qwen)
 - RESTful API with Swagger documentation
 - Built with TypeScript for type safety
 - Fast and efficient with Bun runtime
@@ -56,6 +56,7 @@ The following environment variables can be configured in your `.env` file:
 | `DEEPSEEK_API_KEY`   | Your Deepseek API key                   | -             | Valid API key                     |
 | `PERPLEXITY_API_KEY` | Your Perplexity API key                 | -             | Valid API key                     |
 | `GROQ_API_KEY`       | Your Groq API key                       | -             | Valid API key                     |
+| `QWEN_API_KEY`       | Your Qwen API key                       | -             | Valid API key                     |
 
 ## Development
 
