@@ -155,7 +155,7 @@ describe('GroqProvider', () => {
     const models = await provider.listAvailableModels();
     expect(models).toHaveProperty('text');
     expect(Array.isArray(models.text)).toBe(true);
-    expect(models.text.length).toBeGreaterThan(0);
+    expect(models.text?.length).toBeGreaterThan(0);
     expect(models.text).toContain('llama3-8b-8192');
     expect(models.text).toContain('llama-3.2-11b-vision-preview');
   });
@@ -188,7 +188,7 @@ describe('GroqProvider', () => {
         const request = {
           input_file: audioFile,
           model: 'distil-whisper-large-v3-en',
-          response_format: 'text' as 'text',
+          response_format: 'text' as const,
           temperature: 0.7,
         };
 

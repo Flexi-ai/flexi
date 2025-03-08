@@ -7,6 +7,7 @@ import { GeminiProvider } from './providers/gemini-provider';
 import { DeepseekProvider } from './providers/deepseek-provider';
 import { PerplexityProvider } from './providers/perplexity-provider';
 import { GroqProvider } from './providers/groq-provider';
+import { AssemblyAIProvider } from './providers/assemblyai-provider';
 import { AIProvider } from './types/ai-provider';
 import { swaggerUI } from '@hono/swagger-ui';
 import { createProviderRoutes } from './routes/providers';
@@ -62,6 +63,7 @@ const providerConfig = [
   { name: 'deepseek', Provider: DeepseekProvider, envKey: 'DEEPSEEK_API_KEY' },
   { name: 'perplexity', Provider: PerplexityProvider, envKey: 'PERPLEXITY_API_KEY' },
   { name: 'groq', Provider: GroqProvider, envKey: 'GROQ_API_KEY' },
+  { name: 'assemblyai', Provider: AssemblyAIProvider, envKey: 'ASSEMBLYAI_API_KEY' },
 ];
 
 // Register providers with available API keys
