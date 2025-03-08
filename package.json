@@ -21,14 +21,14 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "@google/generative-ai": "^0.23.0",
+    "@google/generative-ai": "^0.24.0",
     "@hono/swagger-ui": "^0.5.1",
     "@hono/zod-validator": "^0.4.3",
     "assemblyai": "^4.9.0",
     "groq-sdk": "^0.15.0",
     "hono": "^4.7.4",
     "openai": "^4.86.2",
-    "winston": "^3.11.0",
+    "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
     "zod": "^3.24.2"
   },
@@ -36,8 +36,8 @@
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
     "bun-types": "latest",
-    "eslint": "^9.21.0",
-    "eslint-config-prettier": "^10.0.2",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
     "prettier": "^3.5.3",
     "typescript": "^5.8.2"
