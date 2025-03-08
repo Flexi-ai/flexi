@@ -1,6 +1,6 @@
 # FlexiAI
 
-FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers, including OpenAI, Anthropic. Claude, Gemini, Deepseek, Perplexity, Groq, AssemblyAI, and Qwen. It offers a RESTful API with Swagger documentation, built with TypeScript for type safety, and fast and efficient with Bun runtime. It also includes comprehensive validation using Zod and a modern development setup with ESLint and Prettier.
+FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers.
 
 ## Features
 
@@ -75,6 +75,94 @@ bun run dev
 - `bun run test:coverage`: Run tests with coverage report
 - `bun run format`: Format code with Prettier
 - `bun run lint`: Lint and fix code with ESLint
+
+## Production Deployment
+
+### Build for Production
+
+1. Install dependencies:
+
+```bash
+bun install --production
+```
+
+2. Run type checking and tests:
+
+```bash
+bun run check:all
+```
+
+### Deployment Options
+
+#### Option 1: Direct Deployment
+
+1. Set up environment variables:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your production values.
+
+2. Start the production server:
+
+```bash
+bun run start
+```
+
+#### Option 2: Docker Deployment
+
+1. Build the Docker image:
+
+```dockerfile
+FROM oven/bun:latest
+
+WORKDIR /app
+
+COPY package.json bun.lock ./
+RUN bun install --production
+
+COPY . .
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+EXPOSE 3000
+
+CMD ["bun", "run", "start"]
+```
+
+2. Build and run the container:
+
+```bash
+docker build -t flexiai .
+
+# Create a directory for logs on the host machine
+mkdir -p ./logs
+
+# Run the container with a mounted volume for logs
+docker run -p 3000:3000 --env-file .env \
+  -v "$(pwd)/logs:/app/logs" \
+  flexiai
+```
+
+> **Note**: The `-v "$(pwd)/logs:/app/logs"` option creates a shared volume that maps the `logs` directory from your host machine to the `/app/logs` directory inside the container. This ensures that logs are persisted even if the container is removed or recreated.
+
+### Production Considerations
+
+1. Environment Variables:
+
+   - Ensure all required environment variables are properly set
+   - Use appropriate API keys for production
+   - Set `LOG_LEVEL=error` for production
+   - Consider using a secrets management service
+
+2. Security:
+
+   - Change default `API_USERNAME` and `API_PASSWORD`
+   - Enable HTTPS in production
+   - Set up appropriate CORS policies
+   - Consider using a reverse proxy (e.g., Nginx)
 
 ## API Documentation
 

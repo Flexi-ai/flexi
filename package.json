@@ -10,14 +10,13 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts",
-    "build": "bun build src/index.ts --outdir dist",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
     "format": "prettier --write .",
     "lint": "eslint . --ext .ts --fix",
-    "check:all": "bun run typecheck && bun run lint && bun run test && bun run format"
+    "check:all": "bun run lint && bun run format && bun run typecheck && bun run test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
