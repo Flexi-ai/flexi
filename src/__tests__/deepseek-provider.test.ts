@@ -194,7 +194,7 @@ describe('DeepseekProvider', () => {
     const models = await provider.listAvailableModels();
     expect(models).toHaveProperty('text');
     expect(Array.isArray(models.text)).toBe(true);
-    expect(models.text.length).toBeGreaterThan(0);
+    expect(models.text?.length).toBeGreaterThan(0);
     expect(models.text).toContain('deepseek-chat');
     expect(models.text).toContain('deepseek-reasoner');
   });

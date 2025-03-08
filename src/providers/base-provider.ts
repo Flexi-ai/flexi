@@ -1,13 +1,7 @@
-import {
-  AICompletionRequest,
-  AICompletionResponse,
-  AIProvider,
-  ModelTypes,
-} from '../types/ai-provider';
+import { AIProvider, ModelTypes } from '../types/ai-provider';
 
 export abstract class AIProviderBase implements AIProvider {
   abstract name: string;
-  abstract getCompletion(request: AICompletionRequest): Promise<AICompletionResponse>;
   abstract listAvailableModels(): ModelTypes;
 
   protected validateModel(type: string, model: string) {
