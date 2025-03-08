@@ -1,10 +1,10 @@
 # FlexiAI
 
-FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers.
+FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers, including OpenAI, Anthropic. Claude, Gemini, Deepseek, Perplexity, Groq, AssemblyAI, and Qwen. It offers a RESTful API with Swagger documentation, built with TypeScript for type safety, and fast and efficient with Bun runtime. It also includes comprehensive validation using Zod and a modern development setup with ESLint and Prettier.
 
 ## Features
 
-- Multiple AI provider support (OpenAI, Anthropic, Claude, Gemini, Deepseek, Perplexity, Groq, AssemblyAI, ElevenLabs, and Qwen)
+- Multiple AI provider support (OpenAI, Anthropic, Claude, Gemini, Deepseek, Perplexity, Groq, AssemblyAI, and Qwen)
 - RESTful API with Swagger documentation
 - Built with TypeScript for type safety
 - Fast and efficient with Bun runtime
@@ -58,7 +58,6 @@ The following environment variables can be configured in your `.env` file:
 | `GROQ_API_KEY`       | Your Groq API key                       | -             | Valid API key                     |
 | `ASSEMBLYAI_API_KEY` | Your AssemblyAI API key                 | -             | Valid API key                     |
 | `QWEN_API_KEY`       | Your Qwen API key                       | -             | Valid API key                     |
-| `ELEVENLABS_API_KEY` | Your ElevenLabs API key                 | -             | Valid API key                     |
 
 ## Development
 
