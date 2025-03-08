@@ -150,7 +150,7 @@ describe('ClaudeProvider', () => {
     const models = await provider.listAvailableModels();
     expect(models).toHaveProperty('text');
     expect(Array.isArray(models.text)).toBe(true);
-    expect(models.text.length).toBeGreaterThan(0);
+    expect(models.text?.length).toBeGreaterThan(0);
     expect(models.text).toContain('claude-3-5-sonnet-20241022');
     expect(models.text).toContain('claude-3-7-sonnet-latest');
   });

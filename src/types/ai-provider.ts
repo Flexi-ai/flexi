@@ -1,5 +1,5 @@
 export type ModelTypes = {
-  text: string[];
+  text?: string[];
   audio?: string[];
 };
 
@@ -70,7 +70,7 @@ export interface AIAudioTranscriptionResponse {
 
 export interface AIProvider {
   name: string;
-  getCompletion(request: AICompletionRequest): Promise<AICompletionResponse>;
+  getCompletion?(request: AICompletionRequest): Promise<AICompletionResponse>;
   getCompletionStream?(request: AICompletionRequest): AsyncGenerator<AIStreamChunk>;
   transcribeAudio?(request: AIAudioTranscriptionRequest): Promise<AIAudioTranscriptionResponse>;
   listAvailableModels(): ModelTypes;

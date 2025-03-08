@@ -206,7 +206,7 @@ describe('GeminiProvider', () => {
     const models = await provider.listAvailableModels();
     expect(models).toHaveProperty('text');
     expect(Array.isArray(models.text)).toBe(true);
-    expect(models.text.length).toBeGreaterThan(0);
+    expect(models.text?.length).toBeGreaterThan(0);
     expect(models.text).toContain('gemini-2.0-flash');
     expect(models.text).toContain('gemini-2.0-flash-lite');
   });

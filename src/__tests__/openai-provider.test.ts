@@ -155,7 +155,7 @@ describe('OpenAIProvider', () => {
     const models = await provider.listAvailableModels();
     expect(models).toHaveProperty('text');
     expect(Array.isArray(models.text)).toBe(true);
-    expect(models.text.length).toBeGreaterThan(0);
+    expect(models.text?.length).toBeGreaterThan(0);
     expect(models.text).toContain('gpt-3.5-turbo');
     expect(models.text).toContain('gpt-4-turbo');
   });
@@ -188,7 +188,7 @@ describe('OpenAIProvider', () => {
         const request = {
           input_file: audioFile,
           model: 'whisper-1',
-          response_format: 'text' as 'text',
+          response_format: 'text' as const,
           temperature: 0.7,
         };
 

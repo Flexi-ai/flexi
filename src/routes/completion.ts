@@ -104,6 +104,10 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
         );
       }
 
+      if (!provider.getCompletion) {
+        return c.json({ error: 'Completion is not supported by this provider' }, 400);
+      }
+
       const response = await provider.getCompletion(request);
       let responseBody = { content: response.content };
       if (body.show_stats) {
