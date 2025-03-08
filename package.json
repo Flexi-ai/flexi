@@ -25,6 +25,7 @@
     "@hono/swagger-ui": "^0.5.1",
     "@hono/zod-validator": "^0.4.3",
     "assemblyai": "^4.9.0",
+    "elevenlabs": "^1.53.0",
     "groq-sdk": "^0.15.0",
     "hono": "^4.7.4",
     "openai": "^4.86.2",
