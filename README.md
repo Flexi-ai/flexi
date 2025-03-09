@@ -1,6 +1,6 @@
 # FlexiAI
 
-FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers, including OpenAI, Anthropic. Claude, Gemini, Deepseek, Perplexity, Groq, AssemblyAI, ElevenLabs, and Qwen. It offers a RESTful API with Swagger documentation, built with TypeScript for type safety, and fast and efficient with Bun runtime. It also includes comprehensive validation using Zod and a modern development setup with ESLint and Prettier.
+FlexiAI is a flexible AI solution that provides a unified interface for multiple AI providers.
 
 ## Features
 
