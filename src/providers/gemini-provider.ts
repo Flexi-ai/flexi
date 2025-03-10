@@ -151,11 +151,8 @@ export class GeminiProvider extends AIProviderBase {
       // Validate file type and size
       this.validateAudioFile(request.input_file);
 
-      // Get the ArrayBuffer from the File object
-      const arrayBuffer = await request.input_file.arrayBuffer();
-
-      // Convert the ArrayBuffer to a base64 string
-      const base64String = Buffer.from(arrayBuffer).toString('base64');
+      // Convert the file to a base64 string
+      const base64String = await this.convertFileToBase64(request.input_file);
 
       const audioPart = {
         inlineData: {
