@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import {
+  AIAudioTranscriptionRequest,
+  AIAudioTranscriptionResponse,
   AICompletionRequest,
   AICompletionResponse,
   AIStreamChunk,
@@ -135,6 +137,51 @@ export class GeminiProvider extends AIProviderBase {
     };
   }
 
+  async transcribeAudio(
+    request: AIAudioTranscriptionRequest
+  ): Promise<AIAudioTranscriptionResponse> {
+    if (!request.input_file) {
+      throw new Error('Audio file is required');
+    }
+
+    const model = request.model || 'gemini-2.0-flash';
+    this.validateModel('audio', model);
+
+    try {
+      // Validate file type and size
+      this.validateAudioFile(request.input_file);
+
+      // Convert the file to a base64 string
+      const base64String = await this.convertFileToBase64(request.input_file);
+
+      const audioPart = {
+        inlineData: {
+          mimeType: request.input_file.type,
+          data: base64String,
+        },
+      };
+
+      const prompt = 'Transcribe the following audio:';
+
+      const providerModel = this.client.getGenerativeModel({ model });
+
+      const result = await providerModel.generateContent([prompt, audioPart]);
+      const response = await result.response;
+      const transcription = response.text();
+
+      return {
+        transcription: transcription,
+        model: model,
+        provider: this.name,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Audio transcription failed: ${error.message}`);
+      }
+      throw new Error('Audio transcription failed: Unknown error');
+    }
+  }
+
   listAvailableModels(): ModelTypes {
     return {
       text: [
@@ -144,6 +191,7 @@ export class GeminiProvider extends AIProviderBase {
         'gemini-1.5-flash-8b',
         'gemini-1.5-pro',
       ],
+      audio: ['gemini-2.0-flash'],
     };
   }
 }

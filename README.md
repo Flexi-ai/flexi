@@ -43,22 +43,23 @@ Edit the `.env` file and add your API keys for the AI providers you want to use.
 
 The following environment variables can be configured in your `.env` file:
 
-| Variable             | Description                             | Default Value | Available Options                 |
-| -------------------- | --------------------------------------- | ------------- | --------------------------------- |
-| `PORT`               | The port number for the server          | 3000          | Any valid port number             |
-| `API_USERNAME`       | Username for API authentication         | -             | Any string                        |
-| `API_PASSWORD`       | Password for API authentication         | -             | Any string                        |
-| `LOG_LEVEL`          | Controls the verbosity of logging       | info          | error, warn, info, debug, verbose |
-| `LOGGING_ENABLED`    | Enable/disable request/response logging | true          | true, false                       |
-| `OPENAI_API_KEY`     | Your OpenAI API key                     | -             | Valid API key                     |
-| `ANTHROPIC_API_KEY`  | Your Anthropic API key                  | -             | Valid API key                     |
-| `GEMINI_API_KEY`     | Your Google Gemini API key              | -             | Valid API key                     |
-| `DEEPSEEK_API_KEY`   | Your Deepseek API key                   | -             | Valid API key                     |
-| `PERPLEXITY_API_KEY` | Your Perplexity API key                 | -             | Valid API key                     |
-| `GROQ_API_KEY`       | Your Groq API key                       | -             | Valid API key                     |
-| `ASSEMBLYAI_API_KEY` | Your AssemblyAI API key                 | -             | Valid API key                     |
-| `ELEVENLABS_API_KEY` | Your ElevenLabs API key                 | -             | Valid API key                     |
-| `QWEN_API_KEY`       | Your Qwen API key                       | -             | Valid API key                     |
+| Variable             | Description                             | Default Value | Available Options                 | Supported Types |
+| -------------------- | --------------------------------------- | ------------- | --------------------------------- | --------------- |
+| -------------------- | --------------------------------------- | ------------- | --------------------------------- | --------------- |
+| `PORT`               | The port number for the server          | 3000          | Any valid port number             | NA              |
+| `API_USERNAME`       | Username for API authentication         | -             | Any string                        | NA              |
+| `API_PASSWORD`       | Password for API authentication         | -             | Any string                        | NA              |
+| `LOG_LEVEL`          | Controls the verbosity of logging       | info          | error, warn, info, debug, verbose | NA              |
+| `LOGGING_ENABLED`    | Enable/disable request/response logging | true          | true, false                       | NA              |
+| `OPENAI_API_KEY`     | Your OpenAI API key                     | -             | Valid API key                     | text, audio     |
+| `ANTHROPIC_API_KEY`  | Your Anthropic API key                  | -             | Valid API key                     | text            |
+| `GEMINI_API_KEY`     | Your Google Gemini API key              | -             | Valid API key                     | text, audio     |
+| `DEEPSEEK_API_KEY`   | Your Deepseek API key                   | -             | Valid API key                     | text            |
+| `PERPLEXITY_API_KEY` | Your Perplexity API key                 | -             | Valid API key                     | text            |
+| `GROQ_API_KEY`       | Your Groq API key                       | -             | Valid API key                     | text, audio     |
+| `ASSEMBLYAI_API_KEY` | Your AssemblyAI API key                 | -             | Valid API key                     | audio           |
+| `ELEVENLABS_API_KEY` | Your ElevenLabs API key                 | -             | Valid API key                     | audio           |
+| `QWEN_API_KEY`       | Your Qwen API key                       | -             | Valid API key                     | text            |
 
 ## Development
 
