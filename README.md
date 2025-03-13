@@ -46,8 +46,8 @@ The following environment variables can be configured in your `.env` file:
 | Variable             | Description                             | Default Value | Available Options                 | Supported Types |
 | -------------------- | --------------------------------------- | ------------- | --------------------------------- | --------------- |
 | `PORT`               | The port number for the server          | 3000          | Any valid port number             | -               |
-| `API_USERNAME`       | Username for API authentication         | -             | Any string                        | -               |
-| `API_PASSWORD`       | Password for API authentication         | -             | Any string                        | -               |
+| `API_USERNAME`       | Username for API authentication         | admin         | Any string                        | -               |
+| `API_PASSWORD`       | Password for API authentication         | secret123     | Any string                        | -               |
 | `LOG_LEVEL`          | Controls the verbosity of logging       | info          | error, warn, info, debug, verbose | -               |
 | `LOGGING_ENABLED`    | Enable/disable request/response logging | true          | true, false                       | -               |
 | `OPENAI_API_KEY`     | Your OpenAI API key                     | -             | Valid API key                     | text, audio     |
