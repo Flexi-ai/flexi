@@ -1,6 +1,6 @@
 import { expect, test, describe, beforeEach } from 'bun:test';
 import { OpenAIProvider } from '../providers/openai-provider';
-import { AICompletionRequest } from '../types/ai-provider';
+import { AIAudioTranscriptionRequest, AICompletionRequest } from '../types/ai-provider';
 
 const hasOpenAIKey = !!process.env.OPENAI_API_KEY;
 
@@ -155,7 +155,7 @@ describe('OpenAIProvider', () => {
     const models = await provider.listAvailableModels();
     expect(models).toHaveProperty('text');
     expect(Array.isArray(models.text)).toBe(true);
-    expect(models.text.length).toBeGreaterThan(0);
+    expect(models.text?.length).toBeGreaterThan(0);
     expect(models.text).toContain('gpt-3.5-turbo');
     expect(models.text).toContain('gpt-4-turbo');
   });
@@ -174,5 +174,70 @@ describe('OpenAIProvider', () => {
     await expect(provider.getCompletion(request)).rejects.toThrow(
       'Invalid model used. Use /provider/models api to know which models are supported'
     );
+  });
+
+  describe('transcribeAudio', () => {
+    (hasOpenAIKey ? test : test.skip)(
+      'successfully transcribes audio file',
+      async () => {
+        const audioPath = new URL('./data-sources/sample-audio.mp3', import.meta.url);
+        const bunFile = Bun.file(audioPath);
+        const audioFile = new File([await bunFile.arrayBuffer()], 'sample-audio.mp3', {
+          type: 'audio/mpeg',
+        });
+        const request = {
+          input_file: audioFile,
+          model: 'whisper-1',
+          response_format: 'text' as const,
+          temperature: 0.7,
+        };
+
+        const response = await provider.transcribeAudio(request);
+        expect(response.provider).toBe('openai');
+        expect(response.model).toBe('whisper-1');
+        expect(typeof response.transcription).toBe('string');
+      },
+      20000
+    );
+
+    test('rejects text files', async () => {
+      const testTxtPath = new URL('./data-sources/test.txt', import.meta.url);
+      const bunFile = Bun.file(testTxtPath);
+      const txtFile = new File([await bunFile.arrayBuffer()], 'test.txt', {
+        type: 'text/plain',
+      });
+      const request = {
+        input_file: txtFile,
+      };
+
+      await expect(provider.transcribeAudio(request)).rejects.toThrow(
+        'Audio transcription failed: Invalid audio format. Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, webm'
+      );
+    });
+
+    test('throws error when input_file is missing', async () => {
+      const request: AIAudioTranscriptionRequest = {
+        input_file: undefined as unknown as File,
+        model: 'whisper-1',
+      };
+
+      await expect(provider.transcribeAudio(request)).rejects.toThrow('Audio file is required');
+    });
+
+    test('validates model type', async () => {
+      const audioPath = new URL('./data-sources/sample-audio.mp3', import.meta.url);
+      const bunFile = Bun.file(audioPath);
+      const audioFile = new File([await bunFile.arrayBuffer()], 'sample-audio.mp3', {
+        type: 'audio/mpeg',
+      });
+      const request = {
+        input_file: audioFile,
+        model: 'gpt-4', // Using a text model instead of audio model
+      };
+
+      await expect(provider.transcribeAudio(request)).rejects.toThrow(
+        'Invalid model used. Use /provider/models api to know which models are supported'
+      );
+    });
   });
 });

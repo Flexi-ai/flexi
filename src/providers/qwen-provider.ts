@@ -1,7 +1,4 @@
-import { OpenAI } from 'openai';
 import {
-  AIAudioTranscriptionRequest,
-  AIAudioTranscriptionResponse,
   AICompletionRequest,
   AICompletionResponse,
   AIMessage,
@@ -9,6 +6,7 @@ import {
   ModelTypes,
 } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
+import OpenAI from 'openai';
 
 type AIImageMessage = {
   role: 'user';
@@ -20,17 +18,20 @@ type AIImageMessage = {
   }[];
 };
 
-export class OpenAIProvider extends AIProviderBase {
+export class QwenProvider extends AIProviderBase {
   private client: OpenAI;
-  name = 'openai';
+  name = 'qwen';
 
   constructor(apiKey: string) {
     super();
-    this.client = new OpenAI({ apiKey });
+    this.client = new OpenAI({
+      baseURL: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',
+      apiKey: apiKey,
+    });
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
-    const model = request.model || 'gpt-3.5-turbo';
+    const model = request.model || 'qwen-plus';
     this.validateModel('text', model);
 
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
@@ -45,7 +46,7 @@ export class OpenAIProvider extends AIProviderBase {
           content: [
             {
               type: 'image_url',
-              image_url: { url: `data:image/png;base64,${base64Content}` }, // Embed image
+              image_url: { url: `data:image/png;base64,${base64Content}` },
             },
           ],
         },
@@ -88,11 +89,10 @@ export class OpenAIProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
 
-    const model = request.model || 'gpt-3.5-turbo';
+    const model = request.model || 'qwen-plus';
     this.validateModel('text', model);
 
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
-
     if (request.input_file) {
       this.validateImageFile(request.input_file);
       const base64Content = await this.convertFileToBase64(request.input_file);
@@ -103,7 +103,7 @@ export class OpenAIProvider extends AIProviderBase {
           content: [
             {
               type: 'image_url',
-              image_url: { url: `data:image/png;base64,${base64Content}` }, // Embed image
+              image_url: { url: `data:image/png;base64,${base64Content}` },
             },
           ],
         },
@@ -133,7 +133,7 @@ export class OpenAIProvider extends AIProviderBase {
       model: completion.model,
       provider: this.name,
       usage:
-        request.show_stats && !request.stream && completion.usage
+        request.show_stats && completion.usage
           ? {
               promptTokens: completion.usage.prompt_tokens,
               completionTokens: completion.usage.completion_tokens,
@@ -142,57 +142,20 @@ export class OpenAIProvider extends AIProviderBase {
           : undefined,
     };
   }
-  async transcribeAudio(
-    request: AIAudioTranscriptionRequest
-  ): Promise<AIAudioTranscriptionResponse> {
-    if (!request.input_file) {
-      throw new Error('Audio file is required');
-    }
-
-    const model = request.model || 'whisper-1';
-    this.validateModel('audio', model);
-
-    try {
-      // Validate file type and size
-      this.validateAudioFile(request.input_file);
-
-      const transcription = await this.client.audio.transcriptions.create({
-        file: request.input_file,
-        model,
-        response_format: request.response_format || 'text',
-        temperature: request.temperature,
-        prompt: request.prompt,
-      });
-
-      return {
-        transcription: transcription,
-        model: model,
-        provider: this.name,
-      };
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Audio transcription failed: ${error.message}`);
-      }
-      throw new Error('Audio transcription failed: Unknown error');
-    }
-  }
 
   listAvailableModels(): ModelTypes {
     return {
       text: [
-        'o1',
-        'o1-mini',
-        'o3-mini',
-        'chatgpt-4o-latest',
-        'gpt-3.5-turbo-instruct',
-        'gpt-3.5-turbo',
-        'gpt-3.5-turbo-16k',
-        'gpt-4-turbo',
-        'gpt-4',
-        'gpt-4o',
-        'gpt-4o-mini',
+        'qwen-max',
+        'qwen-max',
+        'qwen-max-latest',
+        'qwen-plus',
+        'qwen-plus-0125',
+        'qwen-plus-latest',
+        'qwen-turbo',
+        'qwen-turbo-1101',
+        'qwen-turbo-latest',
       ],
-      audio: ['whisper-1'],
     };
   }
 }

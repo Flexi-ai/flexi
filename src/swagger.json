@@ -12,6 +12,145 @@
     }
   ],
   "paths": {
+    "/api/transcription": {
+      "post": {
+        "tags": ["API Endpoints"],
+        "summary": "Create audio transcription",
+        "description": "Transcribes audio file to text using specified AI provider",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["request", "input_file"],
+                "properties": {
+                  "request": {
+                    "type": "string",
+                    "description": "JSON string containing request parameters",
+                    "example": "{\"provider\":\"openai\",\"model\":\"whisper-1\",\"response_format\":\"text\",\"temperature\":0.7}"
+                  },
+                  "input_file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Audio file to transcribe"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful transcription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transcription": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "description": "Transcribed text in plain text format"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string",
+                              "description": "Transcribed text in JSON format"
+                            }
+                          },
+                          "required": ["text"]
+                        }
+                      ],
+                      "description": "Transcription result in the requested format (text)"
+                    },
+                    "model": {
+                      "type": "string",
+                      "description": "Model used for transcription"
+                    },
+                    "provider": {
+                      "type": "string",
+                      "description": "AI provider used for transcription"
+                    }
+                  }
+                },
+                "example": {
+                  "text": "This is the transcribed text from the audio file.",
+                  "model": "whisper-1",
+                  "provider": "openai"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Provider doesn't support transcription",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Audio transcription is not supported by this provider"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Provider not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Provider not found"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Invalid request parameters",
+                  "details": [
+                    { "code": "invalid_type", "path": ["provider"], "message": "Required" }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/providers": {
       "get": {
         "tags": ["API Endpoints"],
