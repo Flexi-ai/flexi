@@ -29,6 +29,7 @@ export interface AICompletionRequest {
   stream?: boolean;
   show_stats?: boolean;
   input_file?: File;
+  web_search?: boolean;
 }
 
 export interface AICompletionResponse {
@@ -40,6 +41,10 @@ export interface AICompletionResponse {
     completionTokens?: number;
     totalTokens?: number;
   };
+  search_results?: {
+    title: string;
+    url: string;
+  }[];
 }
 
 export interface AIStreamChunk {
@@ -51,6 +56,10 @@ export interface AIStreamChunk {
     completionTokens?: number;
     totalTokens?: number;
   };
+  search_results?: {
+    title: string;
+    url: string;
+  }[];
   error?: string;
 }
 

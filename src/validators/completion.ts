@@ -14,4 +14,5 @@ export const completionSchema = z.object({
   show_stats: z.boolean().optional().default(false),
   stream: z.boolean().optional().default(false),
   input_file: z.instanceof(File).optional(),
+  web_search: z.boolean().optional().default(false),
 });

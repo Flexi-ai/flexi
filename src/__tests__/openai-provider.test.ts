@@ -114,6 +114,18 @@ describe('OpenAIProvider', () => {
       expect(response.usage).toHaveProperty('completionTokens');
       expect(response.usage).toHaveProperty('totalTokens');
     });
+
+    test('handles web_search parameter', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'What is the latest news about AI?' }],
+        web_search: true,
+      };
+
+      const response = await provider.getCompletion(request);
+      expect(response.provider).toBe('openai');
+      // Note: We can't reliably test for search_results as it depends on OpenAI's response
+      // and whether the model actually performs a search
+    }, 10000);
   });
 
   (hasOpenAIKey ? describe : describe.skip)('getCompletionStream', () => {
@@ -129,6 +141,22 @@ describe('OpenAIProvider', () => {
       expect(firstChunk).toHaveProperty('model');
       expect(firstChunk).toHaveProperty('provider', 'openai');
     });
+
+    test('handles web_search parameter in streaming mode', async () => {
+      const request: AICompletionRequest = {
+        messages: [{ role: 'user', content: 'What is the latest news about AI?' }],
+        web_search: true,
+        stream: true,
+      };
+
+      const generator = provider.getCompletionStream(request);
+      const firstChunk = (await generator.next()).value;
+
+      expect(firstChunk).toHaveProperty('content');
+      expect(firstChunk).toHaveProperty('provider', 'openai');
+      // Note: We can't reliably test for search_results as it depends on OpenAI's response
+      // and whether the model actually performs a search in the first chunk
+    }, 10000);
 
     test('handles input_file in stream request', async () => {
       const testImagePath = new URL('./data-sources/text-based-image.png', import.meta.url);
