@@ -13,10 +13,12 @@ import { AIProviderBase } from './base-provider';
 
 // Define types for OpenAI annotations and URL citations
 interface OpenAIAnnotation {
-  type: string;
-  url_citation?: {
-    title?: string;
-    url?: string;
+  type: 'url_citation';
+  url_citation: {
+    title: string;
+    url: string;
+    start_index: number;
+    end_index: number;
   };
 }
 
