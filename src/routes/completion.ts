@@ -59,10 +59,10 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
       if (body.stream && provider.getCompletionStream) {
         c.header('Content-Type', 'text/event-stream');
         c.header('Cache-Control', 'no-cache');
-        c.header('Connection', 'keep-alive');
+        c.header('Content-Encoding', 'identity');
 
         const stream = provider.getCompletionStream(request);
-        return new Response(
+        return c.newResponse(
           new ReadableStream({
             async start(controller) {
               try {
