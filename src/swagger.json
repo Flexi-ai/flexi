@@ -315,6 +315,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Whether to stream the response as Server-Sent Events"
+                  },
+                  "web_search": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to perform web search before generating the completion"
                   }
                 }
               },
@@ -329,7 +334,8 @@
                 "temperature": 0.7,
                 "maxTokens": 100,
                 "show_stats": true,
-                "stream": false
+                "stream": false,
+                "web_search": false
               }
             }
           }
@@ -371,6 +377,23 @@
                           "description": "Total number of tokens used"
                         }
                       }
+                    },
+                    "search_results": {
+                      "type": "array",
+                      "description": "Web search results (only when web_search is true)",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "Title of the search result"
+                          },
+                          "url": {
+                            "type": "string",
+                            "description": "URL of the search result"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -407,6 +430,23 @@
                           "description": "Total number of tokens used"
                         }
                       }
+                    },
+                    "search_results": {
+                      "type": "array",
+                      "description": "Web search results (only when web_search is true)",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "Title of the search result"
+                          },
+                          "url": {
+                            "type": "string",
+                            "description": "URL of the search result"
+                          }
+                        }
+                      }
                     }
                   }
                 },
@@ -418,7 +458,13 @@
                     "prompt_tokens": 20,
                     "completion_tokens": 15,
                     "total_tokens": 35
-                  }
+                  },
+                  "search_results": [
+                    {
+                      "title": "Example Search Result",
+                      "url": "https://example.com/result1"
+                    }
+                  ]
                 }
               }
             }

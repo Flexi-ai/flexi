@@ -1,4 +1,5 @@
 import { OpenAI } from 'openai';
+import { ChatCompletionCreateParams } from 'openai/resources/chat/completions';
 import {
   AIAudioTranscriptionRequest,
   AIAudioTranscriptionResponse,
@@ -9,6 +10,35 @@ import {
   ModelTypes,
 } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
+
+// Define types for OpenAI annotations and URL citations
+interface OpenAIAnnotation {
+  type: 'url_citation';
+  url_citation: {
+    title: string;
+    url: string;
+    start_index: number;
+    end_index: number;
+  };
+}
+
+// Extend OpenAI types to include annotations
+interface ExtendedDelta extends OpenAI.Chat.Completions.ChatCompletionChunk.Choice.Delta {
+  annotations?: OpenAIAnnotation[];
+}
+
+interface ExtendedChatCompletionMessage extends OpenAI.Chat.Completions.ChatCompletionMessage {
+  annotations?: OpenAIAnnotation[];
+}
+
+// Define types for stream and completion options
+type OpenAIStreamOptions = ChatCompletionCreateParams & {
+  web_search_options?: Record<string, unknown>;
+};
+
+type OpenAICompletionOptions = ChatCompletionCreateParams & {
+  web_search_options?: Record<string, unknown>;
+};
 
 type AIImageMessage = {
   role: 'user';
@@ -30,7 +60,7 @@ export class OpenAIProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
-    const model = request.model || 'gpt-3.5-turbo';
+    const model = request.model || (request.web_search ? 'gpt-4o-search-preview' : 'gpt-3.5-turbo');
     this.validateModel('text', model);
 
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
@@ -52,7 +82,7 @@ export class OpenAIProvider extends AIProviderBase {
       ];
     }
 
-    const stream = await this.client.chat.completions.create({
+    const streamOptions: OpenAIStreamOptions = {
       model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
@@ -66,18 +96,49 @@ export class OpenAIProvider extends AIProviderBase {
           content: (msg as AIMessage).content,
         };
       }),
-      temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
       stream: true,
-    });
+    };
+
+    if (request.web_search) {
+      streamOptions.web_search_options = {};
+    }
+    // Only add temperature if web_search is not enabled
+    if (!request.web_search) {
+      streamOptions.temperature = request?.temperature || 0.7;
+    }
+
+    const stream = await this.client.chat.completions.create(streamOptions);
+
+    let searchResults: AIStreamChunk['search_results'] = undefined;
+
+    // Track if we've processed annotations already
+    let processedAnnotations = false;
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
-      if (content) {
+
+      // Check for annotations in the response (new format for web search)
+      if (!processedAnnotations && (chunk.choices[0]?.delta as ExtendedDelta)?.annotations) {
+        const annotations = (chunk.choices[0].delta as ExtendedDelta).annotations || [];
+        searchResults = annotations
+          .filter(
+            (annotation: OpenAIAnnotation) =>
+              annotation.type === 'url_citation' && annotation.url_citation
+          )
+          .map((annotation: OpenAIAnnotation) => ({
+            title: annotation?.url_citation?.title || '',
+            url: annotation?.url_citation?.url || '',
+          }));
+        processedAnnotations = true;
+      }
+
+      if (content || searchResults) {
         yield {
           content,
           model: chunk.model,
           provider: this.name,
+          search_results: searchResults,
         };
       }
     }
@@ -88,7 +149,7 @@ export class OpenAIProvider extends AIProviderBase {
       throw new Error('For streaming responses, please use getCompletionStream method');
     }
 
-    const model = request.model || 'gpt-3.5-turbo';
+    const model = request.model || (request.web_search ? 'gpt-4o-search-preview' : 'gpt-3.5-turbo');
     this.validateModel('text', model);
 
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
@@ -110,7 +171,7 @@ export class OpenAIProvider extends AIProviderBase {
       ];
     }
 
-    const completion = await this.client.chat.completions.create({
+    const completionOptions: OpenAICompletionOptions = {
       model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
@@ -124,14 +185,54 @@ export class OpenAIProvider extends AIProviderBase {
           content: (msg as AIMessage).content,
         };
       }),
-      temperature: request?.temperature || 0.7,
       max_tokens: request?.maxTokens || 1000,
-    });
+    };
+
+    if (request.web_search) {
+      completionOptions.web_search_options = {};
+    }
+    // Only add temperature if web_search is not enabled
+    if (!request.web_search) {
+      completionOptions.temperature = request?.temperature || 0.7;
+    }
+
+    const completion = await this.client.chat.completions.create(completionOptions);
+
+    // Extract search results if available
+    let searchResults;
+    let completionContent = completion.choices[0]?.message?.content || '';
+    // Check for annotations in the response (new format for web search)
+    if (
+      request.web_search &&
+      (completion.choices[0]?.message as ExtendedChatCompletionMessage)?.annotations
+    ) {
+      const annotations =
+        (completion.choices[0].message as ExtendedChatCompletionMessage).annotations || [];
+      searchResults = annotations
+        .filter(
+          (annotation: OpenAIAnnotation) =>
+            annotation.type === 'url_citation' && annotation.url_citation
+        )
+        .map((annotation: OpenAIAnnotation) => ({
+          title: annotation?.url_citation?.title || '',
+          url: annotation?.url_citation?.url || '',
+        }));
+
+      completionContent = completionContent
+        .replace(/\(\[[^\]]+\]\([^)]+\)\)/g, '')
+        // Remove standalone markdown links at the end
+        .replace(/\n\n## [^\n]+\n(- \[[^\]]+\]\([^)]+\)\n)+$/g, '')
+        // Clean up any double spaces or extra newlines that might be left
+        .replace(/\s+\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
 
     return {
-      content: completion.choices[0]?.message?.content || '',
+      content: completionContent,
       model: completion.model,
       provider: this.name,
+      search_results: searchResults,
       usage:
         request.show_stats && !request.stream && completion.usage
           ? {
@@ -142,6 +243,7 @@ export class OpenAIProvider extends AIProviderBase {
           : undefined,
     };
   }
+
   async transcribeAudio(
     request: AIAudioTranscriptionRequest
   ): Promise<AIAudioTranscriptionResponse> {
@@ -191,6 +293,8 @@ export class OpenAIProvider extends AIProviderBase {
         'gpt-4',
         'gpt-4o',
         'gpt-4o-mini',
+        'gpt-4o-search-preview',
+        'gpt-4o-mini-search-preview',
       ],
       audio: ['whisper-1'],
     };
