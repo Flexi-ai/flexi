@@ -73,7 +73,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
                       error: chunk.error,
                       status: 500,
                     });
-                    controller.enqueue(new TextEncoder().encode(`${errorData}\n\n`));
+                    controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
                     controller.close();
                     return;
                   }
@@ -88,7 +88,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
                       : {}),
                     ...(chunk.search_results ? { search_results: chunk.search_results } : {}),
                   });
-                  controller.enqueue(new TextEncoder().encode(`${data}\n\n`));
+                  controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
                 }
               } catch (error) {
                 const errorMessage =
@@ -97,7 +97,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
                   error: errorMessage,
                   status: 500,
                 });
-                controller.enqueue(new TextEncoder().encode(`${errorData}\n\n`));
+                controller.enqueue(new TextEncoder().encode(`data: ${errorData}\n\n`));
               } finally {
                 controller.close();
               }
