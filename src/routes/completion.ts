@@ -55,6 +55,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
         show_stats: body.show_stats,
         input_file: body.input_file,
         web_search: body.web_search,
+        reasoning: body.reasoning,
       };
 
       if (body.stream && provider.getCompletionStream) {

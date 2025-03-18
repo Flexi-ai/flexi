@@ -63,7 +63,48 @@ export class OpenAIProvider extends AIProviderBase {
     const model = request.model || (request.web_search ? 'gpt-4o-search-preview' : 'gpt-3.5-turbo');
     this.validateModel('text', model);
 
-    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+    if (['o1', 'o1-mini', 'o3-mini'].includes(model) && request.temperature) {
+      throw new Error('Temperature is not supported for models o1, o1-mini, o3-mini.');
+    }
+
+    if (!['o1', 'o1-mini', 'o3-mini'].includes(model) && request.reasoning) {
+      throw new Error('Reasoning is not supported for models other than o1, o1-mini, o3-mini.');
+    }
+
+    let updatedMessages: (AIMessage | AIImageMessage)[] = [...request.messages];
+
+    // Validate system message compatibility
+    if (['o1', 'o1-mini', 'o3-mini'].includes(model)) {
+      const hasSystemMessage = updatedMessages.some(msg => msg.role === 'system');
+      if (hasSystemMessage) {
+        throw new Error("'messages[0].role' does not support 'system' with this model");
+      }
+    }
+
+    // If reasoning is enabled, add a system message requesting JSON output
+    if (request.reasoning) {
+      // Check if there's already a system message
+      const hasSystemMessage = updatedMessages.some(msg => msg.role === 'system');
+
+      if (hasSystemMessage) {
+        // Update existing system message to include JSON request
+        updatedMessages = updatedMessages.map(msg => {
+          if (msg.role === 'system') {
+            return {
+              ...msg,
+              content: `${msg.content} Please provide your response in JSON format.`,
+            };
+          }
+          return msg;
+        });
+      } else {
+        // Add a new system message
+        updatedMessages.unshift({
+          role: 'system',
+          content: 'Please provide your response in JSON format.',
+        });
+      }
+    }
 
     if (request.input_file) {
       this.validateImageFile(request.input_file);
@@ -96,15 +137,21 @@ export class OpenAIProvider extends AIProviderBase {
           content: (msg as AIMessage).content,
         };
       }),
-      max_tokens: request?.maxTokens || 1000,
+      max_completion_tokens: request?.maxTokens || 1000,
       stream: true,
     };
+
+    if (request.reasoning) {
+      streamOptions.reasoning_effort = 'medium';
+      streamOptions.response_format = { type: 'json_object' };
+      streamOptions.store = true;
+    }
 
     if (request.web_search) {
       streamOptions.web_search_options = {};
     }
-    // Only add temperature if web_search is not enabled
-    if (!request.web_search) {
+
+    if (!request.web_search && !['o1', 'o1-mini', 'o3-mini'].includes(model)) {
       streamOptions.temperature = request?.temperature || 0.7;
     }
 
@@ -152,7 +199,48 @@ export class OpenAIProvider extends AIProviderBase {
     const model = request.model || (request.web_search ? 'gpt-4o-search-preview' : 'gpt-3.5-turbo');
     this.validateModel('text', model);
 
-    let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
+    if (['o1', 'o1-mini', 'o3-mini'].includes(model) && request.temperature) {
+      throw new Error('Temperature is not supported for models o1, o1-mini, o3-mini.');
+    }
+
+    if (!['o1', 'o3-mini'].includes(model) && request.reasoning) {
+      throw new Error('Reasoning is not supported for models other than o1, o3-mini.');
+    }
+
+    let updatedMessages: (AIMessage | AIImageMessage)[] = [...request.messages];
+
+    // Validate system message compatibility
+    if (['o1', 'o3-mini'].includes(model)) {
+      const hasSystemMessage = updatedMessages.some(msg => msg.role === 'system');
+      if (hasSystemMessage) {
+        throw new Error("'messages[0].role' does not support 'system' with this model");
+      }
+    }
+
+    // If reasoning is enabled, add a system message requesting JSON output
+    if (request.reasoning) {
+      // Check if there's already a system message
+      const hasSystemMessage = updatedMessages.some(msg => msg.role === 'system');
+
+      if (hasSystemMessage) {
+        // Update existing system message to include JSON request
+        updatedMessages = updatedMessages.map(msg => {
+          if (msg.role === 'system') {
+            return {
+              ...msg,
+              content: `${msg.content} Please provide your response in JSON format.`,
+            };
+          }
+          return msg;
+        });
+      } else {
+        // Add a new system message
+        updatedMessages.unshift({
+          role: 'system',
+          content: 'Please provide your response in JSON format.',
+        });
+      }
+    }
 
     if (request.input_file) {
       this.validateImageFile(request.input_file);
@@ -185,14 +273,21 @@ export class OpenAIProvider extends AIProviderBase {
           content: (msg as AIMessage).content,
         };
       }),
-      max_tokens: request?.maxTokens || 1000,
+      max_completion_tokens: request?.maxTokens || 1000,
     };
+
+    if (request.reasoning) {
+      completionOptions.reasoning_effort = 'medium';
+      completionOptions.response_format = { type: 'json_object' };
+      completionOptions.store = true;
+    }
 
     if (request.web_search) {
       completionOptions.web_search_options = {};
     }
     // Only add temperature if web_search is not enabled
-    if (!request.web_search) {
+
+    if (!request.web_search && !['o1', 'o1-mini', 'o3-mini'].includes(model)) {
       completionOptions.temperature = request?.temperature || 0.7;
     }
 
@@ -286,7 +381,6 @@ export class OpenAIProvider extends AIProviderBase {
         'o1-mini',
         'o3-mini',
         'chatgpt-4o-latest',
-        'gpt-3.5-turbo-instruct',
         'gpt-3.5-turbo',
         'gpt-3.5-turbo-16k',
         'gpt-4-turbo',
