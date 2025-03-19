@@ -54,6 +54,8 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
         stream: body.stream,
         show_stats: body.show_stats,
         input_file: body.input_file,
+        web_search: body.web_search,
+        reasoning: body.reasoning,
       };
 
       if (body.stream && provider.getCompletionStream) {
@@ -85,6 +87,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
                           usage: chunk.usage,
                         }
                       : {}),
+                    ...(chunk.search_results ? { search_results: chunk.search_results } : {}),
                   });
                   controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`));
                 }
@@ -109,7 +112,7 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
       }
 
       const response = await provider.getCompletion(request);
-      let responseBody = { content: response.content };
+      let responseBody: Partial<typeof response> = { content: response.content };
       if (body.show_stats) {
         responseBody = {
           ...responseBody,
@@ -118,6 +121,12 @@ export const createCompletionRoutes = (providers: Map<string, AIProvider>) => {
             provider: response.provider,
             usage: response.usage,
           },
+        };
+      }
+      if (response.search_results) {
+        responseBody = {
+          ...responseBody,
+          search_results: response.search_results,
         };
       }
       return c.json(responseBody);

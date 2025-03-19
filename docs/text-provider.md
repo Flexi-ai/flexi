@@ -29,7 +29,9 @@ The API accepts both JSON and multipart form data formats.
   "maxTokens": 100,
   "model": "string",
   "show_stats": false,
-  "stream": false
+  "stream": false,
+  "web_search": false,
+  "reasoning": false
 }
 ```
 
@@ -46,6 +48,8 @@ The API accepts both JSON and multipart form data formats.
 | model              | string  | No       | Specific model to use                                  |
 | show_stats         | boolean | No       | Whether to return model and usage statistics           |
 | stream             | boolean | No       | Whether to stream the response as Server-Sent Events   |
+| web_search         | boolean | No       | Whether to perform web search based response           |
+| reasoning          | boolean | No       | Whether to show reasoning process                      |
 
 #### Multipart Form Data
 
