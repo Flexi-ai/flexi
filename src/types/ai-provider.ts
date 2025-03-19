@@ -30,6 +30,7 @@ export interface AICompletionRequest {
   show_stats?: boolean;
   input_file?: File;
   web_search?: boolean;
+  reasoning?: boolean;
 }
 
 export interface AICompletionResponse {
