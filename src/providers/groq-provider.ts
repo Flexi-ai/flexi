@@ -9,6 +9,10 @@ import {
   ModelTypes,
 } from '../types/ai-provider';
 import { AIProviderBase } from './base-provider';
+import {
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
+} from 'groq-sdk/resources/chat/completions.mjs';
 
 type AIImageMessage = {
   role: 'user';
@@ -52,7 +56,7 @@ export class GroqProvider extends AIProviderBase {
       ];
     }
 
-    const stream = await this.client.chat.completions.create({
+    const completionOptions: ChatCompletionCreateParamsStreaming = {
       model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
@@ -62,14 +66,17 @@ export class GroqProvider extends AIProviderBase {
           };
         }
         return {
-          role: msg.role === 'assistant' ? 'assistant' : 'user',
+          role: msg.role === 'assistant' ? 'assistant' : msg.role,
           content: (msg as AIMessage).content,
         };
       }),
-      temperature: request?.temperature || 0.7,
-      max_tokens: request?.maxTokens || 1000,
       stream: true,
-    });
+      temperature: request?.temperature || 0.7,
+      max_completion_tokens: request?.maxTokens || 1000,
+      reasoning_format: request.reasoning ? 'parsed' : null,
+    };
+
+    const stream = await this.client.chat.completions.create(completionOptions);
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
@@ -91,6 +98,17 @@ export class GroqProvider extends AIProviderBase {
     const model = request.model || 'llama3-8b-8192';
     this.validateModel('text', model);
 
+    if (
+      !['qwen-qwq-32b', 'deepseek-r1-distill-qwen-32b', 'deepseek-r1-distill-llama-70b'].includes(
+        model
+      ) &&
+      request.reasoning
+    ) {
+      throw new Error(
+        'Reasoning is not supported for models other than qwen-qwq-32b, deepseek-r1-distill-qwen-32b, deepseek-r1-distill-llama-70b.'
+      );
+    }
+
     let updatedMessages: (AIMessage | AIImageMessage)[] = request.messages;
 
     if (request.input_file) {
@@ -110,7 +128,7 @@ export class GroqProvider extends AIProviderBase {
       ];
     }
 
-    const completion = await this.client.chat.completions.create({
+    const completionOptions: ChatCompletionCreateParamsNonStreaming = {
       model,
       messages: updatedMessages.map(msg => {
         if (Array.isArray((msg as AIImageMessage).content)) {
@@ -125,8 +143,11 @@ export class GroqProvider extends AIProviderBase {
         };
       }),
       temperature: request?.temperature || 0.7,
-      max_tokens: request?.maxTokens || 1000,
-    });
+      max_completion_tokens: request?.maxTokens || 1000,
+      reasoning_format: request.reasoning ? 'parsed' : null,
+    };
+
+    const completion = await this.client.chat.completions.create(completionOptions);
 
     return {
       content: completion.choices[0]?.message?.content || '',
@@ -182,7 +203,7 @@ export class GroqProvider extends AIProviderBase {
     return {
       text: [
         'deepseek-r1-distill-llama-70b',
-        'deepseek-r1-distill-qwen-32b',
+        'deepseek-r1-distill-llama-70b-instruct',
         'gemma2-9b-it',
         'llama-3.1-8b-instant',
         'llama-3.2-1b-preview',
