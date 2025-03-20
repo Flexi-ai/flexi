@@ -203,7 +203,7 @@ export class GroqProvider extends AIProviderBase {
     return {
       text: [
         'deepseek-r1-distill-llama-70b',
-        'deepseek-r1-distill-llama-70b-instruct',
+        'deepseek-r1-distill-qwen-32b',
         'gemma2-9b-it',
         'llama-3.1-8b-instant',
         'llama-3.2-1b-preview',
