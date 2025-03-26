@@ -31,6 +31,10 @@ export class GrokProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    if (request.reasoning) {
+      throw new Error('Reasoning is not supported for this provider');
+    }
+
     const model = request.model || 'grok-2';
     this.validateModel('text', model);
 
@@ -87,6 +91,10 @@ export class GrokProvider extends AIProviderBase {
   async getCompletion(request: AICompletionRequest): Promise<AICompletionResponse> {
     if (request.stream) {
       throw new Error('For streaming responses, please use getCompletionStream method');
+    }
+
+    if (request.reasoning) {
+      throw new Error('Reasoning is not supported for this provider');
     }
 
     const model = request.model || 'grok-2';
