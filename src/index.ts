@@ -5,6 +5,7 @@ import { OpenAIProvider } from './providers/openai-provider';
 import { ClaudeProvider } from './providers/claude-provider';
 import { GeminiProvider } from './providers/gemini-provider';
 import { DeepseekProvider } from './providers/deepseek-provider';
+import { GrokProvider } from './providers/grok-provider';
 import { PerplexityProvider } from './providers/perplexity-provider';
 import { GroqProvider } from './providers/groq-provider';
 import { AssemblyAIProvider } from './providers/assemblyai-provider';
@@ -63,6 +64,7 @@ const providerConfig = [
   { name: 'claude', Provider: ClaudeProvider, envKey: 'ANTHROPIC_API_KEY' },
   { name: 'gemini', Provider: GeminiProvider, envKey: 'GEMINI_API_KEY' },
   { name: 'deepseek', Provider: DeepseekProvider, envKey: 'DEEPSEEK_API_KEY' },
+  { name: 'grok', Provider: GrokProvider, envKey: 'GROK_API_KEY' },
   { name: 'perplexity', Provider: PerplexityProvider, envKey: 'PERPLEXITY_API_KEY' },
   { name: 'groq', Provider: GroqProvider, envKey: 'GROQ_API_KEY' },
   { name: 'assemblyai', Provider: AssemblyAIProvider, envKey: 'ASSEMBLYAI_API_KEY' },
