@@ -33,6 +33,9 @@ export class GeminiProvider extends AIProviderBase {
   }
 
   async *getCompletionStream(request: AICompletionRequest): AsyncGenerator<AIStreamChunk> {
+    if (request.reasoning) {
+      throw new Error('Reasoning is not supported for streaming responses');
+    }
     const model = request.model || 'gemini-2.0-flash';
     this.validateModel('text', model);
 
@@ -83,6 +86,13 @@ export class GeminiProvider extends AIProviderBase {
 
     const model = request.model || 'gemini-2.0-flash';
     this.validateModel('text', model);
+
+    if (
+      request.reasoning &&
+      !['gemini-2.0-flash-thinking-exp', 'gemini-2.5-pro-exp-03-25'].includes(model)
+    ) {
+      throw new Error('Reasoning is not supported for this model');
+    }
 
     let updatedContents: (AIContentMessage | AIImageMessage)[] = request.messages.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
@@ -185,13 +195,22 @@ export class GeminiProvider extends AIProviderBase {
   listAvailableModels(): ModelTypes {
     return {
       text: [
-        'gemini-2.0-flash',
-        'gemini-2.0-flash-lite',
         'gemini-1.5-flash',
         'gemini-1.5-flash-8b',
         'gemini-1.5-pro',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-2.0-flash-thinking-exp',
+        'gemini-2.5-pro-exp-03-25',
       ],
-      audio: ['gemini-2.0-flash'],
+      audio: [
+        'gemini-1.5-flash',
+        'gemini-1.5-flash-8b',
+        'gemini-1.5-pro',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-2.5-pro-exp-03-25',
+      ],
     };
   }
 }

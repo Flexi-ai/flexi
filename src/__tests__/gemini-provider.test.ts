@@ -283,7 +283,7 @@ describe('GeminiProvider', () => {
       });
       const request = {
         input_file: audioFile,
-        model: 'gemini-1.5-flash', // Using a text model instead of audio model
+        model: 'gemini-2.0-flash-thinking-exp', // Using a text model instead of audio model
       };
 
       await expect(provider.transcribeAudio(request)).rejects.toThrow(
